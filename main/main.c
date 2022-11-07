@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
+#include "voltageMeasure.h"
 
 void app_main(void)
 {
@@ -10,5 +10,6 @@ void app_main(void)
         printf("[%d] Hello world!\n", i);
         i++;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
+        hello();
     }
 }

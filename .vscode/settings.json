@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "\"*.tpp\"": "\"c\"",
+        "voltagemeasure.h": "c"
+    }
+}
