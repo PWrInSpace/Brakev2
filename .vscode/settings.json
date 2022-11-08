@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "\"*.tpp\"": "\"c\"",
-        "voltagemeasure.h": "c"
+        "voltagemeasure.h": "c",
+        "freertos.h": "c",
+        "stdio.h": "c"
     }
 }
