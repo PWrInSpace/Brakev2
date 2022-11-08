@@ -1,17 +1,19 @@
 # Brakev2
 
-Program structure:
+## Program structure:
 
 ![Structure](docs/Brejk1.jpg)
 
-## Docker
+## Lint:
 
-To run docker type in the terminal:
-```bash
-sudo docker run --rm -v $PWD:/project -w /project espressif/idf:latest idf.py build
+Install cpplint
+```
+  pip3 install cpplint
+```
+Run lint
+```
+  bash lint.sh
 ```
 
-If using the [ESP-IDF Docker Image](https://hub.docker.com/r/espressif/idf) from Docker Hub
-
-
+## WIDZISZ MNIE?
 ![Bad ending](docs/brek.gif)
