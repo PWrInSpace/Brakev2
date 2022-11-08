@@ -1,6 +1,6 @@
+// Copyright 2022 PWrInSpace
 #include "voltageMeasure.h"
 
-void hello()
-{
+void hello() {
     printf("Dupa\n");
 }
