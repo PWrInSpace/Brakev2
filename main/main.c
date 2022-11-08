@@ -2,13 +2,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "voltageMeasure.h"
+#include "esp_log.h"
 
+#define TAG "MAIN"
 
 void app_main(void)
 {
     int i = 0;
     while (1) {
-        printf("[%d] Hello world!\n", i);
+        ESP_LOGI(TAG, "[%d] Hello world!\n", i);
         i++;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
         hello();
