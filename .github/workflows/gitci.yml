@@ -1,11 +1,16 @@
-name: Espressif IoT Development Framework (ESP-IDF)
-uses: espressif/esp-idf-ci-action@v1
+jobs:
+  build:
 
-stages:
-  - build
+    runs-on: ubuntu-latest
 
-idf-build:
-  stage: build
-  script:
-    - echo "Hello world!"
-    - idf.py build
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: esp-idf build
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: v4.4
+        target: esp32s2
+        path: 'esp32-s2-hmi-devkit-1/examples/smart-panel'
