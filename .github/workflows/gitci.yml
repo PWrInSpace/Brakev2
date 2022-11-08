@@ -25,4 +25,4 @@ jobs:
         python -m pip install --upgrade pip
         pip install cpplint
     - name: run lint
-      run: sh lint.sh
+      run: sh ${GITHUB_WORKSPACE}/lint.sh
