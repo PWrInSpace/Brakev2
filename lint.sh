@@ -14,4 +14,4 @@ FILTERS="\
 -build/header_guard
 "
 
-cpplint ${OPTIONS} --filter=${FILTERS} ${FILES}
+cpplint ${OPTIONS} --linelength=100 --filter=${FILTERS} ${FILES}
