@@ -3,6 +3,7 @@
         "\"*.tpp\"": "\"c\"",
         "voltagemeasure.h": "c",
         "freertos.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "stdbool.h": "c"
     }
 }
