@@ -28,7 +28,6 @@ void SM_init() {
     sm.end_function = NULL;
     sm.end_fct_frq_ms = 0;
     sm.state_task = NULL;
-    sm.current_state_mutex = NULL;
     sm.current_state_mutex = xSemaphoreCreateMutex();
 }
 
