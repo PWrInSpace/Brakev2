@@ -11,7 +11,8 @@ OPTIONS="\
 
 FILTERS="\
 -build/include_subdir,\
--build/header_guard
+-build/header_guard,\
+-readability/casting
 "
 
 cpplint ${OPTIONS} --filter=${FILTERS} ${FILES}
