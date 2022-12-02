@@ -4,6 +4,7 @@
         "voltagemeasure.h": "c",
         "freertos.h": "c",
         "stdio.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "state_machine.h": "c"
     }
 }
