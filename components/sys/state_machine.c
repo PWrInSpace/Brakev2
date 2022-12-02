@@ -1,50 +1,83 @@
 // Copyright 2022 PWrInSpace
 
+// General purpouse state machine with callbacks for sounding rockets.
+// States are defined by user
+
+
 #include "state_machine.h"
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/event_groups.h>
-#include <freertos/semphr.h>
-#include <string.h>
-#include <stdbool.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/portmacro.h"
+#include "freertos/event_groups.h"
+#include "freertos/semphr.h"
+#include "string.h"
+#include "stdbool.h"
 #include "esp_log.h"
 
 static struct {
-    state_t states[SM_MAX - SM_ZERO];
-    uint8_t states_number;
-    uint8_t added_states;
+    state_config_t *states;
+    uint8_t states_quantity;
     uint8_t current_state;
+
     end_looped_function end_function;
     uint32_t end_fct_frq_ms;
+
     TaskHandle_t state_task;
     SemaphoreHandle_t current_state_mutex;
 } sm;
 
 void SM_init() {
-    memset(sm.states, 0, sizeof(sm.states));
-    sm.states_number = SM_MAX - SM_ZERO - 1;
-    sm.added_states = 0;
+    sm.states = NULL;
+    sm.states_quantity = 0;
     sm.current_state = 0;
     sm.end_function = NULL;
     sm.end_fct_frq_ms = 0;
+
     sm.state_task = NULL;
     sm.current_state_mutex = xSemaphoreCreateMutex();
 }
 
-SM_Response SM_add_state(States state_name, state_change_callback callback, void* arg) {
-    if (sm.added_states > sm.states_number) {
-        return SM_MEMORY_ERROR;
+static bool check_state_id(state_config_t *states, uint8_t states_quantity) {
+    assert(states != NULL);
+
+    for (int i = 0; i < states_quantity; ++i) {
+        // id is less than states_quantity
+        if (states[i].id >= states_quantity) {
+            return false;
+        }
+
+        // ids are unique
+        for (int j = i + 1; j < states_quantity; ++j) {
+            if (states[i].id == states[j].id) {
+                return false;
+            }
+        }
     }
 
-    sm.states[sm.added_states].callback = callback;
-    sm.states[sm.added_states].arg = arg;
-    sm.states[sm.added_states].state_name = state_name;
-    sm.added_states += 1;
+    return true;
+}
 
+SM_Response SM_set_states(state_config_t *states, uint8_t states_quantity) {
+    assert(states != NULL);
+    if (states == NULL) {
+        return SM_STATES_ERROR;
+    }
+
+    if (states_quantity == 0) {
+        return SM_STATES_NUMBER_ERROR;
+    }
+
+    if (check_state_id(states, states_quantity) == false) {
+        return SM_STATES_ERROR;
+    }
+
+    sm.states = states;
+    sm.states_quantity = states_quantity;
     return SM_OK;
 }
 
 SM_Response SM_set_end_function(end_looped_function function, uint32_t freq_ms) {
+    assert(function != NULL);
     if (function == NULL) {
         return SM_NULL_FUNCTION;
     }
@@ -55,9 +88,9 @@ SM_Response SM_set_end_function(end_looped_function function, uint32_t freq_ms) 
     return SM_OK;
 }
 
-static bool SM_check_new_state(States new_state) {
-    assert(sm.current_state < sm.states_number);
-    if (sm.current_state >= sm.states_number) {
+static bool SM_check_new_state(state_id new_state) {
+    assert(sm.current_state < sm.states_quantity);
+    if (sm.current_state >= sm.states_quantity) {
         return false;
     }
 
@@ -65,14 +98,14 @@ static bool SM_check_new_state(States new_state) {
         return false;
     }
 
-    if (sm.states[sm.current_state + 1].state_name != new_state) {
+    if (sm.states[sm.current_state + 1].id != new_state) {
         return false;
     }
 
     return true;
 }
 
-SM_Response SM_change_state(States new_state) {
+SM_Response SM_change_state(state_id new_state) {
     xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
     if (SM_check_new_state(new_state)) {
       sm.current_state += 1;
@@ -84,7 +117,7 @@ SM_Response SM_change_state(States new_state) {
     return SM_STATE_CHANGE_ERROR;
 }
 
-SM_Response SM_change_state_ISR(States new_state) {
+SM_Response SM_change_state_ISR(state_id new_state) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
@@ -99,22 +132,21 @@ SM_Response SM_change_state_ISR(States new_state) {
     return SM_STATE_CHANGE_ERROR;
 }
 
-States SM_get_current_state(void) {
-    States current_state;
-
+state_id SM_get_current_state(void) {
+    state_id current_state;
     xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
-    current_state = sm.states[sm.current_state].state_name;
+    current_state = sm.current_state;
     xSemaphoreGive(sm.current_state_mutex);
 
     return current_state;
 }
 
-States SM_get_current_state_ISR(void) {
-    States current_state;
+state_id SM_get_current_state_ISR(void) {
+    state_id current_state;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     xSemaphoreTakeFromISR(sm.current_state_mutex, &xHigherPriorityTaskWoken);
-    current_state = sm.states[sm.current_state].state_name;
+    current_state = sm.current_state;
     xSemaphoreGiveFromISR(sm.current_state_mutex, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 
@@ -125,14 +157,14 @@ static void SM_loop(void *arg) {
     bool sm_completed = false;
 
     while (1) {
-        assert(sm.current_state < sm.states_number);
+        assert(sm.current_state < sm.states_quantity);
         if (ulTaskNotifyTake(pdTRUE, 0)) {
             xSemaphoreTake(sm.current_state_mutex, pdTRUE);
             if (sm.states[sm.current_state].callback != NULL) {
                 sm.states[sm.current_state].callback(sm.states[sm.current_state].arg);
             }
 
-            if (sm.current_state + 1 >= sm.states_number) {
+            if (sm.current_state + 1 >= sm.states_quantity) {
                 sm_completed = true;
             }
 
@@ -149,9 +181,8 @@ static void SM_loop(void *arg) {
 }
 
 SM_Response SM_run(void) {
-    assert(sm.added_states == sm.states_number);
-    if (sm.added_states != sm.states_number) {
-        return SM_UNUSED_STATE;
+    if (sm.states == NULL) {
+        return SM_RUN_ERROR;
     }
 
     xTaskCreatePinnedToCore(SM_loop, "SM", 8000, NULL, 10, &sm.state_task, APP_CPU_NUM);

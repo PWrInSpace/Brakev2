@@ -5,6 +5,8 @@
         "freertos.h": "c",
         "stdio.h": "c",
         "stdbool.h": "c",
-        "state_machine.h": "c"
+        "state_machine.h": "c",
+        "timers.h": "c",
+        "unity.h": "c"
     }
 }
