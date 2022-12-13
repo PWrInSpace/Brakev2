@@ -1,6 +1,6 @@
 // // Copyright 2022 PWrInSpace
 
-// #include "voltageMeasure.h"
+#include "voltageMeasure.h"
 
 // bool voltageMeasureInit(voltageMeasure *vMes) {
 //   // vMes->channel = channel;
