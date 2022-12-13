@@ -7,6 +7,14 @@
         "stdbool.h": "c",
         "state_machine.h": "c",
         "timers.h": "c",
-        "unity.h": "c"
+        "unity.h": "c",
+        "console.h": "c",
+        "esp_console.h": "c",
+        "task.h": "c",
+        "esp_log.h": "c",
+        "adc.h": "c",
+        "adc_channel.h": "c",
+        "stddef.h": "c",
+        "sdkconfig.h": "c"
     }
 }
