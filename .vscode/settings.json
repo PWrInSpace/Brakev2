@@ -1,12 +1,20 @@
 {
     "files.associations": {
         "\"*.tpp\"": "\"c\"",
-        "voltagemeasure.h": "c",
+        "voltageMeasure.h": "c",
         "freertos.h": "c",
         "stdio.h": "c",
         "stdbool.h": "c",
         "state_machine.h": "c",
         "timers.h": "c",
-        "unity.h": "c"
-    }
+        "unity.h": "c",
+        "adc_channel.h": "c",
+        "LPS25H.h" : "c"
+    },
+    "includePath": [
+        "sensor/LPS25H.h",
+        "sensor/voltageMeasure.h"
+    ],
+    "idf.adapterTargetName": "esp32",
+    "idf.flashType": "UART"
 }

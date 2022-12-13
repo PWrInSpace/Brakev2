@@ -1,4 +1,4 @@
-idf_component_register(SRCS "sensor.c" "voltageMeasure.c"
+idf_component_register(SRCS "sensor.c" "voltageMeasure.c" "LPS25H.c"
                     INCLUDE_DIRS "."
-                    REQUIRES cmock sensor)
+                    REQUIRES cmock sensor driver)
 
