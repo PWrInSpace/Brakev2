@@ -34,6 +34,7 @@ typedef enum {
   INTERRUPT_CFG = 0x24,
   INT_SOURCE = 0x25,
   STATUS_REG = 0x00,
+  ///
   PRESS_OUT_XL = 0x28,
   PRESS_OUT_L = 0x29,
   PRESS_OUT_H = 0x2A,
