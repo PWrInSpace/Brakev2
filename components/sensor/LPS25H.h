@@ -57,8 +57,15 @@ typedef struct {
   uint8_t addr;
 } LPS25H;
 
+/*!
+  \brief Initialize the sensor 
+  
+  if conf == 0 setup the i2c alongside sensor variables
+  \return ESP_FAIL if param config fails, 
+  then return i2c_driver_install (ESP_OK if successful, ESP_FAIL otherwise  )
+*/
 esp_err_t LPS25HInit(LPS25H *lps, int sda, int scl, i2c_port_t portNum,
-                     uint8_t i2cAddress);
+                     uint8_t i2cAddress, i2c_config_t *conf);
 
 esp_err_t LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
                              size_t len);
