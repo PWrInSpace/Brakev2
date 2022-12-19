@@ -17,37 +17,30 @@
 #define LPS25H_I2C_ADDR_SA0_L 0b1011100
 #define LPS25H_I2C_ADDR_SA0_H 0b1011101
 
-/*!
-  \enum LPS25H_REG
-        addresses of LPS25H sensor registers
-*/
-typedef enum {
-  REF_P_XL = 0x08,
-  REF_P_L = 0x09,
-  REF_P_H = 0x0A,
-  WHO_AM_I = 0x0F,
-  RES_CONF = 0x10,
-  CTRL_REG1 = 0x20,
-  CTRL_REG2 = 0x21,
-  CTRL_REG3 = 0x22,
-  CTRL_REG4 = 0x23,
-  INTERRUPT_CFG = 0x24,
-  INT_SOURCE = 0x25,
-  STATUS_REG = 0x00,
-  ///
-  PRESS_OUT_XL = 0x28,
-  PRESS_OUT_L = 0x29,
-  PRESS_OUT_H = 0x2A,
-  /// Temperature output values
-  TEMP_OUT_L = 0x2B,
-  TEMP_OUT_H = 0x2C,
-  /// FIFO functionality
-  FIFO_CTRL = 0x2E,
-  FIFO_STATUS = 0x2F,
-  /// Threshold values for pressure interrupt generation
-  THS_P_L = 0x30,
-  THS_P_H = 0x31
-} LPS25H_REG;
+#define LPS25H_REG_REF_P_XL 0x08
+#define LPS25H_REG_REF_P_L 0x09
+#define LPS25H_REG_REF_P_H 0x0A
+#define LPS25H_REG_WHO_AM_I 0x0F
+#define LPS25H_REG_RES_CONF 0x10
+#define LPS25H_REG_CTRL_REG1 0x20
+#define LPS25H_REG_CTRL_REG2 0x21
+#define LPS25H_REG_CTRL_REG3 0x22
+#define LPS25H_REG_CTRL_REG4 0x23
+#define LPS25H_REG_INTERRUPT_CFG 0x24
+#define LPS25H_REG_INT_SOURCE 0x25
+#define LPS25H_REG_STATUS_REG 0x00
+#define LPS25H_REG_PRESS_OUT_XL 0x28
+#define LPS25H_REG_PRESS_OUT_L 0x29
+#define LPS25H_REG_PRESS_OUT_H 0x2A
+/// Temperature output values
+#define LPS25H_REG_TEMP_OUT_L 0x2B
+#define LPS25H_REG_TEMP_OUT_H 0x2C
+/// FIFO functionality
+#define LPS25H_REG_FIFO_CTRL 0x2E
+#define LPS25H_REG_FIFO_STATUS 0x2F
+/// Threshold values for pressure interrupt generation
+#define LPS25H_REG_THS_P_L 0x30
+#define LPS25H_REG_THS_P_H 0x31
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
@@ -58,10 +51,10 @@ typedef struct {
 } LPS25H;
 
 /*!
-  \brief Initialize the sensor 
-  
-  if conf == 0 setup the i2c alongside sensor variables
-  \return ESP_FAIL if param config fails, 
+  \brief Initialize the sensor
+
+  if conf    0 setup the i2c alongside sensor variables
+  \return ESP_FAIL if param config fails,
   then return i2c_driver_install (ESP_OK if successful, ESP_FAIL otherwise  )
 */
 esp_err_t LPS25HInit(LPS25H *lps, int sda, int scl, i2c_port_t portNum,

@@ -20,7 +20,7 @@ void app_main(void) {
   //                        .voltage = 0,
   //                        .voltageDivider = 3.319727891};
   // voltageMeasureInit(&vBat);
-    uint8_t data[8];
+  uint8_t data[8];
   //   // ESP_ERROR_CHECK(i2c_master_init());
   //   LPS25H lps;
   //   LPS25H_REG lpsReg = WHO_AM_I;
@@ -47,12 +47,12 @@ void app_main(void) {
   i2c_param_config(port, &master);
   i2c_driver_install(port, master.mode, 0, 0, 0);
   LPS25H lps;
-  LPS25H_REG lpsReg = WHO_AM_I;
+  uint8_t lpsReg = LPS25H_REG_WHO_AM_I;
   ESP_ERROR_CHECK(LPS25HInit(&lps, 0, 0, port, LPS25H_I2C_ADDR_SA0_H, &master));
   while (1) {
-      LPS25HRegisterRead(&lps, lpsReg, data, 8);
-      ESP_LOGI(TAG, "Who am I?: %X\n", data[0]);
-      i++;
-      vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
+    LPS25HRegisterRead(&lps, lpsReg, data, 8);
+    ESP_LOGI(TAG, "Who am I?: %X\n", data[0]);
+    i++;
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+  }
 }
