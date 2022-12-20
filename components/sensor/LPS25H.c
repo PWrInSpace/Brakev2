@@ -30,3 +30,10 @@ esp_err_t LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
       lps->port, lps->addr, &regAddr, 1, data, len,
       I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 }
+
+esp_err_t LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr, uint8_t data) {
+  uint8_t writeBuf[2] = {regAddr, data};
+  return i2c_master_write_to_device(lps->port, lps->addr, writeBuf,
+                                    sizeof(writeBuf),
+                                    I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+}
