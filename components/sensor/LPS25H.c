@@ -6,7 +6,7 @@ esp_err_t LPS25HInit(LPS25H *lps, int sda, int scl, i2c_port_t portNum,
                      uint8_t i2cAddress, i2c_config_t *conf) {
   lps->port = portNum;
   lps->addr = i2cAddress;
-  if (conf == NULL) {
+  if ((void *)conf == NULL) {
     lps->conf.mode = I2C_MODE_MASTER;
     lps->conf.sda_io_num = sda;
     lps->conf.scl_io_num = scl;
