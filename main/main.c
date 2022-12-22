@@ -16,7 +16,7 @@
 void app_main(void) {
   int i = 0;
   while (1) {
-    ESP_LOGI("ITER %d", i);
+    ESP_LOGI(TAG, "ITER %d", i);
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
 }
