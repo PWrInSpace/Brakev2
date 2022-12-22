@@ -2,7 +2,7 @@
 
 #include "sdCard.h"
 
-static struct{
+static struct {
   spi_bus_config_t spiConfig;
   sdmmc_host_t host;
   esp_vfs_fat_mount_config_t fatConfig;
