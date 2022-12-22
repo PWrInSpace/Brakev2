@@ -9,12 +9,14 @@
         "timers.h": "c",
         "unity.h": "c",
         "adc_channel.h": "c",
-        "LPS25H.h" : "c"
+        "LPS25H.h": "c",
+        "i2c.h": "c"
     },
     "includePath": [
         "sensor/LPS25H.h",
         "sensor/voltageMeasure.h"
     ],
     "idf.adapterTargetName": "esp32",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "C_Cpp.intelliSenseEngine": "Tag Parser"
 }
