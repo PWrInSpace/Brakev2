@@ -1,4 +1,4 @@
-// Copyright 2022 PWrInSpace
+// Copyright 2022 PWrInSpace, Krzysztof Gliwiński
 
 #include "LPS25H.h"
 
@@ -15,9 +15,15 @@ esp_err_t LPS25HInit(LPS25H *lps, int sda, int scl, i2c_port_t portNum,
     lps->conf.master.clk_speed = 400000;
     lps->conf.clk_flags = 0;
     if (i2c_param_config(lps->port, &lps->conf) == ESP_ERR_INVALID_ARG) {
+      ESP_LOGE(LPS_TAG, "I2C Param Config initialization Error!");
       return ESP_FAIL;
     }
-    return i2c_driver_install(lps->port, lps->conf.mode, 0, 0, 0);
+    if (i2c_driver_install(lps->port, lps->conf.mode, 0, 0, 0) == ESP_FAIL) {
+      ESP_LOGE(LPS_TAG, "I2C driver install Error!");
+      return ESP_FAIL;
+    } else {
+      return ESP_OK;
+    }
   } else {
     lps->conf = *conf;
   }
