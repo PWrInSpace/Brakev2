@@ -7,6 +7,13 @@
         "stdbool.h": "c",
         "state_machine.h": "c",
         "timers.h": "c",
-        "unity.h": "c"
+        "unity.h": "c",
+        "event_source.h": "c",
+        "esp_event.h": "c",
+        "esp_netif.h": "c",
+        "esp_netif_defaults.h": "c",
+        "esp_netif_types.h": "c",
+        "esp_netif_ip_addr.h": "c",
+        "endian.h": "c"
     }
 }

@@ -8,18 +8,20 @@
 #include "freertos/task.h"
 #include "voltageMeasure.h"
 
+#include "esp_event.h"
+
 #define TAG "MAIN"
 
+esp_event_loop_handle_t event_loop_handle;
+
 void app_main(void) {
-  int i = 0;
-  voltageMeasure vBat = {.channel = ADC1_CHANNEL_4,
-                         .adcRaw = 0,
-                         .voltage = 0,
-                         .voltageDivider = 3.319727891};
-  voltageMeasureInit(&vBat);
-  while (1) {
-    ESP_LOGI(TAG, "Battery voltage: %f\n", getVoltage(&vBat));
-    i++;
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-  }
+    esp_event_loop_args_t event_loop = {
+        .queue_size = 5,
+        .task_name = "loop_task",
+        .task_priority = 10,
+        .task_stack_size = 3072,
+        .task_core_id = PRO_CPU_NUM,
+    };
+
+    esp_event_handler_register_with()
 }
