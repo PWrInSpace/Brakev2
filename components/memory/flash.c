@@ -1,14 +1,6 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
 #include "flash.h"
 
-#include <esp_flash.h>
-#include <esp_flash_spi_init.h>
-#include <esp_spi_flash.h>
-#include <string.h>
-
-#include "esp_log.h"
-#include "esp_spiffs.h"
-
 #define TAG "SPIFFS"
 
 static struct {

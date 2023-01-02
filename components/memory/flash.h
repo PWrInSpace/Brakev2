@@ -4,6 +4,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <esp_flash.h>
+#include <esp_flash_spi_init.h>
+#include <esp_spi_flash.h>
+#include <string.h>
+
+#include "esp_log.h"
+#include "esp_spiffs.h"
+
 // flash memory to storage huge data files
 // usage:
 // you have to create spiffs partition in flash memory:

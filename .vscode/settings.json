@@ -10,7 +10,8 @@
         "unity.h": "c",
         "adc_channel.h": "c",
         "LPS25H.h": "c",
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "nvs_flash.h": "c"
     },
     "includePath": [
         "sensor/LPS25H.h",

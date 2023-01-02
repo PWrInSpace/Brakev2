@@ -1,9 +1,6 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
 #include "flash_nvs.h"
 
-#include <stdint.h>
-
-#include "nvs_flash.h"
 // #include "ps_debug.h"
 
 #define TAG "NVS"

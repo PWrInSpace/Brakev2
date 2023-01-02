@@ -1,6 +1,11 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
 #pragma once
 
+#include <stdint.h>
+
+#include "nvs_flash.h"
+#include "esp_log.h"
+
 typedef enum {
   NVS_OK,
   NVS_INIT_ERROR,
