@@ -8,5 +8,6 @@
         "state_machine.h": "c",
         "timers.h": "c",
         "unity.h": "c"
-    }
+    },
+    "clang-format.executable": "${workspaceRoot}/.clang-format"
 }
