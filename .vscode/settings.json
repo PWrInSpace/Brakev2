@@ -1,13 +1,22 @@
 {
     "files.associations": {
         "\"*.tpp\"": "\"c\"",
-        "voltagemeasure.h": "c",
+        "voltageMeasure.h": "c",
         "freertos.h": "c",
         "stdio.h": "c",
         "stdbool.h": "c",
         "state_machine.h": "c",
         "timers.h": "c",
-        "unity.h": "c"
+        "unity.h": "c",
+        "adc_channel.h": "c",
+        "LPS25H.h": "c",
+        "i2c.h": "c"
     },
-    "clang-format.executable": "${workspaceRoot}/.clang-format"
+    "includePath": [
+        "sensor/LPS25H.h",
+        "sensor/voltageMeasure.h"
+    ],
+    "idf.adapterTargetName": "esp32",
+    "idf.flashType": "UART",
+    "C_Cpp.intelliSenseEngine": "Tag Parser"
 }
