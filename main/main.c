@@ -54,25 +54,7 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, si
 }
 
 void app_main(void) {
-  LSM6DS3_t sensor;
-  LSM6DS3_acc_t acc;
-  LSM6DS3_gyro_t gyro;
-  float temperature;
-
-  i2c_sensor_init();
-  LSM6DS3_init(&sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-
   while (1) {
-    LSM6DS3_acc_ready(&sensor);
-    LSM6DS3_read_acc(&sensor, &acc);
-    LSM6DS3_read_gyro(&sensor, &gyro);
-    LSM6DS3_read_temperature(&sensor, &temperature);
-    bool rdy = LSM6DS3_gyro_ready(&sensor);
-
-    ESP_LOGI(TAG, "ACC: X %f\tY %f\t Z %f", acc.x, acc.y, acc.z);
-    ESP_LOGI(TAG, "GYRO %d : X %f\tY %f\t Z %f", rdy,  gyro.x, gyro.y, gyro.z);
-    // ESP_LOGI(TAG, "Temperature %f", temperature);
-
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }

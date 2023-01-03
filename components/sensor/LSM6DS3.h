@@ -94,11 +94,9 @@ bool LSM6DS3_init(LSM6DS3_t *sensor, uint8_t addr, LSM6DS3_I2C_write write, LSM6
 bool LSM6DS3_check_who_am_i(LSM6DS3_t *sensor);
 bool LSM6DS3_read_acc(LSM6DS3_t *sensor, LSM6DS3_acc_t *acc);
 bool LSM6DS3_set_acc_scale(LSM6DS3_t *sensor, LSM6DS3_ACC_SCALE scale);
-bool LSM6DS3_set_gyro_scale(LSM6S3_t *sensor, LSM6DS3_GYRO_SCALE scale);
+bool LSM6DS3_set_gyro_scale(LSM6DS3_t *sensor, LSM6DS3_GYRO_SCALE scale);
 bool LSM6DS3_read_gyro(LSM6DS3_t *sensor, LSM6DS3_gyro_t *gyro);
-bool LSM6DS3_read_temperature(LSM6DS3_t *sensor, float *temperature);
 bool LSM6DS3_acc_ready(LSM6DS3_t *sensor);
 bool LSM6DS3_gyro_ready(LSM6DS3_t *sensor);
-bool LSM6DS3_temperature_ready(LSM6DS3_t *sensor);
 
 #endif

@@ -38,21 +38,18 @@ bool LSM6DS3_init(LSM6DS3_t *sensor, uint8_t addr, LSM6DS3_I2C_write write, LSM6
     sensor->acc_odr = LSM6DS3_ACC_ODR_1_66kHz;
     sensor->acc_scale = LSM6DS3_ACC_16G;
     sensor->acc_bw = LSM6DS3_ACC_BW_400Hz;
-
+    sensor->gyro_scale = LSM6DS3_GYRO_1000;
+    sensor->gyro_odr = LSM6DS3_GYRO_ODR_1_66kHz;
 
     uint8_t data = create_register_CTRL1_XL(sensor);
     if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL1_XL, &data, sizeof(data)) == false) {
         return false;
     }
+
     data = create_register_CTRL2_G(sensor);
     if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL2_G, &data, sizeof(data)) == false) {
         return false;
     }
-
-    // data = 0x4A;
-    // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL7_G, &data, 1);
-    // data = 0x09;
-    // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL8_XL, &data, 1);
 
     if (LSM6DS3_check_who_am_i(sensor) == false) {
         return false;
@@ -191,33 +188,4 @@ bool LSM6DS3_gyro_ready(LSM6DS3_t *sensor) {
     sensor->i2c_read(sensor->address, LSM6DS3_REG_STATUS, &data, 1);
 
     return (data & (1 << 1));
-}
-
-
-bool LSM6DS3_temperature_ready(LSM6DS3_t *sensor) {
-    assert(sensor != NULL);
-    uint8_t data = 0;
-
-    sensor->i2c_read(sensor->address, LSM6DS3_REG_STATUS, &data, 1);
-
-    return (data & (1 << 2));
-}
-
-bool LSM6DS3_read_temperature(LSM6DS3_t *sensor, float *temperature) {
-    assert(sensor != NULL);
-    assert(temperature != NULL);
-
-    uint8_t data[2] = {0};
-    if (sensor->i2c_read(sensor->address, LSM6DS3_REG_OUT_TEMP_L, data, sizeof(data)) == false) {
-        return false;
-    }
-
-    uint16_t temp;
-    temp = data[0];
-    temp |= data[1] << 8;
-    *temperature = 0;
-    memcpy(temperature, &temp, sizeof(temp));
-    ESP_LOGI(LSM6DS3_TAG, "Temperature %d\t %d\t %f", data[0], data[1], *temperature);
-
-    return true;
 }
