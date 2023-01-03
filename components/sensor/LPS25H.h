@@ -1,4 +1,4 @@
-// Copyright 2022 PWrInSpace
+// Copyright 2022 PWrInSpace, Krzysztof Gliwiński
 
 #pragma once
 #include <stdbool.h>
@@ -6,6 +6,9 @@
 
 #include "driver/i2c.h"
 #include "freertos/FreeRTOS.h"
+#include "esp_log.h"
+
+#define LPS_TAG "LPS25H Error"
 /*!
  \brief LPS25H_I2C_ADDR_SA0_L
       sensor I2C address if SA0 is pulled low
