@@ -16,19 +16,14 @@ static uint8_t create_register_CTRL1_XL(LSM6DS3_t *sensor) {
     return reg;
 }
 
-static float get_acc_factor(LSM6DS3_ACC_SCALE scale) {
-    switch (scale) {
-        case LSM6DS3_ACC_2G:
-            return 0.061;
-        case LSM6DS3_ACC_4G:
-            return 0.122;
-        case LSM6DS3_ACC_8G:
-            return 0.244;
-        case LSM6DS3_ACC_16G:
-            return 0.488;
-        default:
-            return -1;
+static uint8_t create_register_CTRL2_G(LSM6DS3_t *sensor) {
+    uint8_t reg = 0;
+    if (sensor->gyro_scale != LSM6DS3_GYRO_125) {
+        reg |= (sensor->gyro_scale << 2);
     }
+    reg |= (sensor->gyro_odr << 4);
+
+    return reg;
 }
 
 bool LSM6DS3_init(LSM6DS3_t *sensor, uint8_t addr, LSM6DS3_I2C_write write, LSM6DS3_I2C_read read) {
@@ -40,25 +35,21 @@ bool LSM6DS3_init(LSM6DS3_t *sensor, uint8_t addr, LSM6DS3_I2C_write write, LSM6
     sensor->i2c_write = write;
     sensor->i2c_read = read;
 
-    sensor->acc_odr = LSM6DS3_ODR_1_66kHz;
+    sensor->acc_odr = LSM6DS3_ACC_ODR_1_66kHz;
     sensor->acc_scale = LSM6DS3_ACC_16G;
     sensor->acc_bw = LSM6DS3_ACC_BW_400Hz;
 
 
-    uint8_t data[2] = {LSM6DS3_REG_CTRL1_XL, create_register_CTRL1_XL(sensor)};
-    if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL1_XL, data, sizeof(data)) == false) {
+    uint8_t data = create_register_CTRL1_XL(sensor);
+    if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL1_XL, &data, sizeof(data)) == false) {
         return false;
     }
-    // data = 0x80;
-    // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL2_G, &data, 1);
-    // data = 0x04;
-    // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL3_C, &data, 1);
+    data = create_register_CTRL2_G(sensor);
+    if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL2_G, &data, sizeof(data)) == false) {
+        return false;
+    }
 
-    // uint8_t data = 0x4C;
-    // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL2_G, &data, 1);
     // data = 0x4A;
-    // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL1_XL, &data, 1);
-    // data = 0x00;
     // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL7_G, &data, 1);
     // data = 0x09;
     // sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL8_XL, &data, 1);
@@ -83,12 +74,27 @@ bool LSM6DS3_check_who_am_i(LSM6DS3_t *sensor) {
 bool LSM6DS3_set_acc_scale(LSM6DS3_t *sensor, LSM6DS3_ACC_SCALE scale) {
     sensor->acc_scale = scale;
 
-    uint8_t data[2] = {LSM6DS3_REG_CTRL1_XL, create_register_CTRL1_XL(sensor)};
-    if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL1_XL, data, sizeof(data)) == false) {
+    uint8_t data = create_register_CTRL1_XL(sensor);
+    if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL1_XL, &data, sizeof(data)) == false) {
         return false;
     }
 
     return true;
+}
+
+static float get_acc_factor(LSM6DS3_ACC_SCALE scale) {
+    switch (scale) {
+        case LSM6DS3_ACC_2G:
+            return 0.061;
+        case LSM6DS3_ACC_4G:
+            return 0.122;
+        case LSM6DS3_ACC_8G:
+            return 0.244;
+        case LSM6DS3_ACC_16G:
+            return 0.488;
+        default:
+            return -1;
+    }
 }
 
 bool LSM6DS3_read_acc(LSM6DS3_t *sensor, LSM6DS3_acc_t *acc) {
@@ -117,6 +123,57 @@ bool LSM6DS3_read_acc(LSM6DS3_t *sensor, LSM6DS3_acc_t *acc) {
     return true;
 }
 
+bool LSM6DS3_set_gyro_scale(LSM6DS3_t *sensor, LSM6DS3_GYRO_SCALE scale) {
+    sensor->gyro_scale = scale;
+
+    uint8_t data = create_register_CTRL2_G(sensor);
+    if (sensor->i2c_write(sensor->address, LSM6DS3_REG_CTRL2_G, &data, sizeof(data)) == false) {
+        return false;
+    }
+
+    return true;
+}
+
+static float get_gyro_factor(LSM6DS3_GYRO_SCALE scale) {
+    switch (scale) {
+        case LSM6DS3_GYRO_125:
+            return 4.375;
+        case LSM6DS3_GYRO_245:
+            return 8.75;
+        case LSM6DS3_GYRO_500:
+            return 17.50;
+        case LSM6DS3_GYRO_1000:
+            return 35;
+        case LSM6DS3_GYRO_2000:
+            return 70;
+        default:
+            return -1;
+    }
+}
+
+bool LSM6DS3_read_gyro(LSM6DS3_t *sensor, LSM6DS3_gyro_t *gyro) {
+    assert(sensor != NULL);
+    assert(gyro != NULL);
+
+    uint8_t data[6] = {0};
+    if (sensor->i2c_read(sensor->address, LSM6DS3_REG_OUTX_L_G, data, sizeof(data)) == false) {
+        return false;
+    }
+
+    int16_t temp;
+    float gyro_factor = get_gyro_factor(sensor->gyro_scale);
+    temp = data[0];
+    temp |= data[1] << 8;
+    gyro->x = temp * gyro_factor / 1000.0;
+    temp = data[2];
+    temp |= data[3] << 8;
+    gyro->y = temp * gyro_factor / 1000.0;
+    temp = data[4];
+    temp |= data[5] << 8;
+    gyro->z = temp * gyro_factor / 1000.0;
+
+    return true;
+}
 
 bool LSM6DS3_acc_ready(LSM6DS3_t *sensor) {
     assert(sensor != NULL);
@@ -145,29 +202,6 @@ bool LSM6DS3_temperature_ready(LSM6DS3_t *sensor) {
 
     return (data & (1 << 2));
 }
-
-// bool LSM6DS3_read_gyro(LSM6DS3_t *sensor, LSM6DS3_gyro_t *gyro) {
-//     assert(sensor != NULL);
-//     assert(gyro != NULL);
-
-//     uint8_t data[6] = {0};
-//     if (sensor->i2c(sensor->address, LSM6DS3_REG_OUTX_L_G, data, sizeof(data)) == false) {
-//         return false;
-//     }
-
-//     uint16_t temp;
-//     temp = data[0];
-//     temp |= data[1] << 8;
-//     gyro->x = temp;
-//     temp = data[2];
-//     temp |= data[3] << 8;
-//     gyro->y = temp;
-//     temp = data[4];
-//     temp |= data[5] << 8;
-//     gyro->z = temp;
-
-//     return true;
-// }
 
 bool LSM6DS3_read_temperature(LSM6DS3_t *sensor, float *temperature) {
     assert(sensor != NULL);

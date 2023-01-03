@@ -43,7 +43,10 @@ static bool i2c_num1_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, siz
 }
 
 static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len) {
-    if (i2c_master_write_to_device(I2C_NUM_1, dev_addr, data, len, pdMS_TO_TICKS(100)) == ESP_OK) {
+    assert(len == 1);
+    uint8_t tmp[2] = {reg_addr, data[0]};
+    if (i2c_master_write_to_device(I2C_NUM_1, dev_addr, tmp, sizeof(tmp),
+        pdMS_TO_TICKS(100)) == ESP_OK) {
         return true;
     }
 
@@ -62,11 +65,12 @@ void app_main(void) {
   while (1) {
     LSM6DS3_acc_ready(&sensor);
     LSM6DS3_read_acc(&sensor, &acc);
-    // LSM6DS3_read_gyro(&sensor, &gyro);
+    LSM6DS3_read_gyro(&sensor, &gyro);
     LSM6DS3_read_temperature(&sensor, &temperature);
+    bool rdy = LSM6DS3_gyro_ready(&sensor);
 
-    // ESP_LOGI(TAG, "ACC: X %f\tY %f\t Z %f", acc.x, acc.y, acc.z);
-    // ESP_LOGI(TAG, "GYRO: X %f\tY %f\t Z %f", gyro.x, gyro.y, gyro.z);
+    ESP_LOGI(TAG, "ACC: X %f\tY %f\t Z %f", acc.x, acc.y, acc.z);
+    ESP_LOGI(TAG, "GYRO %d : X %f\tY %f\t Z %f", rdy,  gyro.x, gyro.y, gyro.z);
     // ESP_LOGI(TAG, "Temperature %f", temperature);
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
