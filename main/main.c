@@ -5,9 +5,10 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-// #include "voltageMeasure.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
+#include "sdcard.h"
+#include "config.h"
 
 #define TAG "MAIN"
 
@@ -15,6 +16,22 @@
 #define SCL 22
 
 static i2c_config_t i2c_config;
+static spi_bus_config_t spi_bus;
+static spi_host_device_t spi_host;
+
+static esp_err_t spi_init(void) {
+    esp_err_t ret;
+    spi_bus.mosi_io_num = PCB_MOSI,
+    spi_bus.miso_io_num = PCB_MISO,
+    spi_bus.sclk_io_num = PCB_SCK,
+    spi_bus.quadwp_io_num = -1,
+    spi_bus.quadhd_io_num = -1,
+    spi_bus.max_transfer_sz = 4000,
+    spi_host = HSPI_HOST;
+
+    ret = spi_bus_initialize(spi_host, &spi_bus, SDSPI_DEFAULT_DMA);
+    return ret;
+}
 
 static esp_err_t i2c_sensor_init(void) {
     esp_err_t res;
@@ -54,7 +71,19 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, si
 }
 
 void app_main(void) {
-  while (1) {
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-  }
+    sd_card_t sd_card;
+    spi_init();
+    bool res = SD_init(&sd_card, spi_host, PCB_SD_CS, MOUNT_POINT);
+    if (res == false ) {
+        while(1) {
+            ESP_LOGI(TAG, "SD INIT ERR");
+            vTaskDelay(1000);
+        }
+    }
+
+    while (1) {
+        char data[] = "Pawian0!\n";
+        SD_write(&sd_card, "/sdcard/qwer1.txt", data, sizeof(data));
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 }
