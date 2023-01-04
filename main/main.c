@@ -71,19 +71,8 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, si
 }
 
 void app_main(void) {
-    sd_card_t sd_card;
-    spi_init();
-    bool res = SD_init(&sd_card, spi_host, PCB_SD_CS, MOUNT_POINT);
-    if (res == false ) {
-        while(1) {
-            ESP_LOGI(TAG, "SD INIT ERR");
-            vTaskDelay(1000);
-        }
-    }
 
     while (1) {
-        char data[] = "Pawian0!\n";
-        SD_write(&sd_card, "/sdcard/qwer1.txt", data, sizeof(data));
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }

@@ -29,7 +29,6 @@ static bool SD_mount(sd_card_t *sd_card) {
         return false;
     }
     sd_card->mounted = true;
-    ESP_LOGI(TAG, "SD card initialized succesfully :D");
     return true;
 }
 
@@ -71,7 +70,6 @@ bool SD_remount(sd_card_t *sd_card){
     }
 
     res = SD_mount(sd_card);
-    ESP_LOGI(TAG, "REMOUNTING FINISHED WITH STATUS %d", res);
     return res;
 }
 
@@ -79,14 +77,12 @@ bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t len
     esp_err_t res;
 
     if (sd_card->mounted == false) {
-        ESP_LOGI(TAG, "SD_CARD UNMOUNteD");
         if (SD_mount(sd_card) == false) {
             return false;
         }
     }
 
     res = sdmmc_get_status(sd_card->card);
-    ESP_LOGW(TAG, "GET STATUS %d", res);
     if(res != ESP_OK){
         ESP_LOGE(TAG, "CARD ERROR, REMOOUNTING...");
         SD_remount(sd_card);
