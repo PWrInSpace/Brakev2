@@ -1,4 +1,4 @@
-// Copyright 2022 PWrInSpace
+// Copyright 2022 PWrInSpace, Kuba
 
 #ifndef CONSOLE_H
 #define CONSOLE_H

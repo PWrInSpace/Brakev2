@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace
+
 #include "console_commands.h"
 #include "state_machine.h"
 #include "esp_log.h"

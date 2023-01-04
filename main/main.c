@@ -19,7 +19,8 @@ esp_console_cmd_t console_commands[] = {
 void app_main(void) {
     int i = 0;
     console_init();
-    console_register_commands(console_commands, sizeof(console_commands)/sizeof(console_commands[0]));
+    console_register_commands(console_commands,
+        sizeof(console_commands)/sizeof(console_commands[0]));
     SM_init();
 
     while (1) {
