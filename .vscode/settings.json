@@ -10,7 +10,12 @@
         "unity.h": "c",
         "adc_channel.h": "c",
         "LPS25H.h": "c",
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "cstddef": "c",
+        "compare": "cpp"
     },
     "includePath": [
         "sensor/LPS25H.h",
