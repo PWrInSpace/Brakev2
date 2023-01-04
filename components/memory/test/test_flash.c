@@ -19,6 +19,6 @@ TEST_CASE("Flash init and read file test", "[flash]") {
   res = FLASH_read_all_data(FILE_NAME, readData, 1000000);
   TEST_ASSERT_EQUAL(FLASH_OK, res);
   ESP_LOGI(TAG, "%s", readData);
-  
+
   TEST_ASSERT_EQUAL(0, strcmp(EXPECTED_DATA, readData));
 }
