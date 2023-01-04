@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace
+
 #include "communication_protocols.h"
 
 // static esp_err_t spi_init(spi_buss_config_t *cnfg, spi_host_device_t *host) {

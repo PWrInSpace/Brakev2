@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace
+
 #ifndef COMMUNIACTION_PROTOCOLS_H
 #define COMMUNIACTION_PROTOCOLS_H
 

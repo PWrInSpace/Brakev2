@@ -71,7 +71,6 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, si
 }
 
 void app_main(void) {
-
     while (1) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }

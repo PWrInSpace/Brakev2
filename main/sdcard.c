@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace. Kuba
+
 #include <string.h>
 #include "sdcard.h"
 
