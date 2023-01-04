@@ -5,7 +5,6 @@
 #include "esp_log.h"
 #include "unity.h"
 
-
 #define TAG "LSM"
 
 static i2c_config_t i2c_config;
@@ -57,8 +56,8 @@ TEST_CASE("LSM6DS3 init - correct", "[LSM6DS3]") {
 
 TEST_CASE("LSM6DS3 who am i", "[LSM6DS3]") {
     uint8_t res;
-    res = LSM6DS3_who_am_i(&lsm_sensor);
-    TEST_ASSERT_EQUAL(0x69, res);
+    res = LSM6DS3_check_who_am_i(&lsm_sensor);
+    TEST_ASSERT_EQUAL(true, res);
 }
 
 
@@ -69,12 +68,12 @@ TEST_CASE("LSM6DS3 read acc", "[LSM6DS3]") {
     TEST_ASSERT_EQUAL(true, res);
 }
 
-// TEST_CASE("LSM6DS3 read gyro", "[LSM6DS3]") {
-//     bool res;
-//     LSM6DS3_gyro_t gyro;
-//     res = LSM6DS3_read_gyro(&lsm_sensor, &gyro);
-//     TEST_ASSERT_EQUAL(true, res);
-// }
+TEST_CASE("LSM6DS3 read gyro", "[LSM6DS3]") {
+    bool res;
+    LSM6DS3_gyro_t gyro;
+    res = LSM6DS3_read_gyro(&lsm_sensor, &gyro);
+    TEST_ASSERT_EQUAL(true, res);
+}
 
 // TEST_CASE("LSM6DS3 read temperature", "[LSM6DS3]") {
 //     bool res;
