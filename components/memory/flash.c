@@ -92,7 +92,8 @@ FlashResult FLASH_read_all_data(const char* file_name, char* data_container,
     return FLASH_READ_ALL_SIZE;
   }
 
-  file = fopen("/spiffs/test.txt", "r");
+  // PATH+file_name -> Adding the path so user doesn't have to :D
+  file = fopen(file_name, "r");
 
   assert(file != NULL);
   if (file == NULL) {
@@ -137,6 +138,6 @@ FlashResult FLASH_format(void) {
     return FLASH_FORMAT_ERROR;
   }
 
-  ESP_LOGI(TAG, "FLASH FORMATED :D");
+  ESP_LOGI(TAG, "FLASH FORMATED");
   return FLASH_OK;
 }
