@@ -3,7 +3,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include "console/esp_console.h"
+#include "esp_console.h"
 
 esp_err_t console_init(void);
 esp_err_t console_register_commands(esp_console_cmd_t *commands, size_t number_of_cmd);

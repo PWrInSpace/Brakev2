@@ -23,7 +23,7 @@ esp_err_t console_init(void) {
 }
 
 esp_err_t console_register_commands(esp_console_cmd_t *commands, size_t number_of_cmd) {
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
     for (int i = 0; i < number_of_cmd; ++i) {
         ret = esp_console_cmd_register(&commands[i]);
         if (ret != ESP_OK) {
