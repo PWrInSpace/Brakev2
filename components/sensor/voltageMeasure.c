@@ -1,4 +1,4 @@
-// // Copyright 2022 PWrInSpace
+// Copyright 2022 PWrInSpace, Krzysztof Gliwiński
 
 #include "voltageMeasure.h"
 

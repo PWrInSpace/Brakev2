@@ -10,6 +10,8 @@
 #define PCB_MISO 27
 #define PCB_SCK 26
 
+#define PCB_SD_CS 33
+
 // I2C
 #define PCB_SDA 21
 #define PCB_SCL 22
