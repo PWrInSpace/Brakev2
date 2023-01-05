@@ -13,12 +13,15 @@
 #define TAG "Flash test"
 
 TEST_CASE("Flash init and read file test", "[flash]") {
-  FLASH_init(1);
+  TEST_ASSERT_EQUAL(FLASH_OK, FLASH_init(1));
+}
+
+TEST_CASE("Flash read file test", "[flash") {
   char readData[40];
   FlashResult res;
   res = FLASH_read_all_data(FILE_NAME, readData, 1000000);
   TEST_ASSERT_EQUAL(FLASH_OK, res);
-  ESP_LOGI(TAG, "%s", readData);
+  // ESP_LOGI(TAG, "%s", readData);
 
   TEST_ASSERT_EQUAL(0, strcmp(EXPECTED_DATA, readData));
 }

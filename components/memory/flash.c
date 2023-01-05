@@ -92,7 +92,6 @@ FlashResult FLASH_read_all_data(const char* file_name, char* data_container,
     return FLASH_READ_ALL_SIZE;
   }
 
-  // PATH+file_name -> Adding the path so user doesn't have to :D
   file = fopen(file_name, "r");
 
   assert(file != NULL);
