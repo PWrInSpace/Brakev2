@@ -2,9 +2,13 @@
 
 #include <stdio.h>
 
-#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_log.h"
+#include "console.h"
+#include "console_commands.h"
+#include "state_machine.h"
+// #include "voltageMeasure.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
 #include "sdcard.h"
@@ -70,8 +74,22 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, si
     return false;
 }
 
+esp_console_cmd_t console_commands[] = {
+    {"test", "test1234", NULL, CLI_test, NULL},
+    {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
+};
+
+
 void app_main(void) {
+    int i = 0;
+    console_init();
+    console_register_commands(console_commands,
+        sizeof(console_commands)/sizeof(console_commands[0]));
+    SM_init();
+
     while (1) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        ESP_LOGI(TAG, "[%d] Hello world!\n", i);
+        i++;
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
