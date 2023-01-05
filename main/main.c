@@ -11,6 +11,8 @@
 // #include "voltageMeasure.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
+#include "sdcard.h"
+#include "config.h"
 
 #define TAG "MAIN"
 
@@ -18,6 +20,22 @@
 #define SCL 22
 
 static i2c_config_t i2c_config;
+static spi_bus_config_t spi_bus;
+static spi_host_device_t spi_host;
+
+static esp_err_t spi_init(void) {
+    esp_err_t ret;
+    spi_bus.mosi_io_num = PCB_MOSI,
+    spi_bus.miso_io_num = PCB_MISO,
+    spi_bus.sclk_io_num = PCB_SCK,
+    spi_bus.quadwp_io_num = -1,
+    spi_bus.quadhd_io_num = -1,
+    spi_bus.max_transfer_sz = 4000,
+    spi_host = HSPI_HOST;
+
+    ret = spi_bus_initialize(spi_host, &spi_bus, SDSPI_DEFAULT_DMA);
+    return ret;
+}
 
 static esp_err_t i2c_sensor_init(void) {
     esp_err_t res;
