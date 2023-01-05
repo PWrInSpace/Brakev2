@@ -13,7 +13,7 @@
         "i2c.h": "c",
         "nvs_flash.h": "c",
         "flash.h": "c",
-        "*.h": "c"
+        "*.h": "c",
         "array": "c",
         "string": "c",
         "string_view": "c",
