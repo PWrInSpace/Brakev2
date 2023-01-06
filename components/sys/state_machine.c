@@ -14,6 +14,8 @@
 #include "stdbool.h"
 #include "esp_log.h"
 
+#define TAG "SM"
+
 static struct {
     state_config_t *states;
     uint8_t states_quantity;
@@ -108,9 +110,11 @@ static bool SM_check_new_state(state_id new_state) {
 SM_Response SM_change_state(state_id new_state) {
     xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
     if (SM_check_new_state(new_state)) {
-      sm.current_state += 1;
-      xTaskNotifyGive(sm.state_task);
-      return SM_OK;
+        sm.current_state += 1;
+        ESP_LOGI(TAG, "Changing state from %d to %d", sm.current_state - 1, sm.current_state);
+        xSemaphoreGive(sm.current_state_mutex);
+        xTaskNotifyGive(sm.state_task);
+        return SM_OK;
     }
     xSemaphoreGive(sm.current_state_mutex);
 
@@ -122,10 +126,10 @@ SM_Response SM_change_state_ISR(state_id new_state) {
 
     xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
     if (SM_check_new_state(new_state)) {
-      sm.current_state += 1;
-      vTaskNotifyGiveFromISR(sm.state_task, &xHigherPriorityTaskWoken);
-      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-      return SM_OK;
+        sm.current_state += 1;
+        vTaskNotifyGiveFromISR(sm.state_task, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        return SM_OK;
     }
     xSemaphoreGive(sm.current_state_mutex);
 
