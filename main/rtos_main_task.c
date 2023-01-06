@@ -1,22 +1,31 @@
-#include "rtos_tasks.h"
+#include "brejk_system.h"
 #include "utils.h"
 #include "state_machine.h"
 
 #define TAG "MAIN TASK"
 
-static esp_event_loop_handle_t event_handle;
+extern rtos_t rtos;
 
-static struct {
-    uint32_t timestamp;
-    uint8_t state;
-} data;
+static rocket_data_t main_data;
+static esp_event_loop_handle_t event_handle;
 
 ESP_EVENT_DEFINE_BASE(TASK_EVENTS);
 
+static data_to_memory_task_t create_data_to_memory_struct(void) {
+    data_to_memory_task_t data_to_mem;
+    data_to_mem.data = main_data;
+    if (main_data.state < 2) {
+        data_to_mem.save_option = SAVE_TO_SD;
+    } else if (main_data.state < 5) {
+        data_to_mem.save_option = SAVE_TO_BOTH;
+    }
+
+    return data_to_mem;
+}
 
 static void update_data(void) {
-    data.state = SM_get_current_state();
-    data.timestamp = get_time_ms();
+    main_data.state = SM_get_current_state();
+    main_data.up_time = get_time_ms();
 }
 
 /********************** EVENTS ************************/
@@ -31,7 +40,13 @@ static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id, vo
     ESP_LOGI(TAG, "NEW DATA EVENT");
     // get data
     // update data
-    // send to sd
+    update_data();
+    if (main_data.state < 6) {
+        data_to_memory_task_t data_to_memory = create_data_to_memory_struct();
+        if (xQueueSend(rtos.data_to_memory, (void*) &data_to_memory, 0) == pdFALSE) {
+            ESP_LOGE(TAG, "UNABLE TO SEND DATA TO MEMORY TASK");
+        }
+    }
     // set brejk
 }
 

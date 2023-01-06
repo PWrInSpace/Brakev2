@@ -4,10 +4,16 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-// #include "driver/spi_common.h"
 #include "driver/i2c.h"
 #include "driver/spi_common.h"
 #include "driver/sdspi_host.h"
+#include "rtos_tasks.h"
+
+typedef enum {
+    SAVE_TO_SD,
+    SAVE_TO_FLASH,
+    SAVE_TO_BOTH,
+} DATA_SAVE_OPTIONS;
 
 typedef struct {
     TaskHandle_t sensor_task;
@@ -25,6 +31,21 @@ typedef struct {
 typedef struct {
     i2c_config_t i2c_config;
 } i2c_t;
+
+typedef struct {
+    uint8_t todo;
+} sensors_t;
+
+typedef struct {
+    int64_t up_time;
+    uint8_t state;
+    sensors_t sensors_data;
+} rocket_data_t;
+
+typedef struct {
+    rocket_data_t data;
+    DATA_SAVE_OPTIONS save_option;
+} data_to_memory_task_t;
 
 bool rtos_init(void);
 bool rtos_test_mode_init(void);

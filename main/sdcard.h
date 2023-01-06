@@ -22,6 +22,7 @@ typedef struct {
 
 bool SD_init(sd_card_t *sd_card, spi_host_device_t host, uint8_t cs, const char *m_point);
 bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t length);
+bool SD_file_exists(const char *path);
 bool SD_remount(sd_card_t *sd_card);
 bool SD_unmount(sd_card_t *sd_card);
 

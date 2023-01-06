@@ -14,11 +14,6 @@ typedef enum {
     SENSORS_APOGEE_EVENT,
 } EVENTS;
 
-typedef enum {
-    SAVE_TO_SD,
-    SAVE_TO_FLASH,
-    SAVE_TO_BOTH,
-} DATA_SAVE_OPTIONS;
 
 ESP_EVENT_DECLARE_BASE(TASK_EVENTS);
 bool event_loop_init(void);

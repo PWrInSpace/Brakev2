@@ -10,10 +10,12 @@
 #include "LSM6DS3.h"
 #include "sdcard.h"
 #include "config.h"
-#include "rtos_tasks.h"
 #include "brejk_system.h"
 
 #define TAG "MAIN"
+
+extern spi_t spi;
+sd_card_t sd_card;
 
 esp_console_cmd_t console_commands[] = {
     {"test", "test1234", NULL, CLI_test, NULL},
@@ -26,16 +28,16 @@ void app_main(void) {
     spi_init();
     i2c_sensor_init();
     SM_init();
+
+    SD_init(&sd_card, spi.spi_host, PCB_SD_CS, MOUNT_POINT);
     console_init();
     console_register_commands(console_commands,
         sizeof(console_commands)/sizeof(console_commands[0]));
-
     event_loop_init();
     event_loop_register();
     rtos_init();
 
     // rtos_test_mode_init();
-
 
     vTaskDelete(NULL);
 }

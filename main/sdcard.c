@@ -1,6 +1,7 @@
 // Copyright 2022 PWrInSpace. Kuba
 
 #include <string.h>
+#include <sys/stat.h>
 #include "sdcard.h"
 
 #define TAG "SDCARD"
@@ -45,6 +46,15 @@ bool SD_init(sd_card_t *sd_card, spi_host_device_t spi_host, uint8_t cs_pin, con
     }
 
     return true;
+}
+
+bool SD_file_exists(const char* file_name) {
+    struct stat st;
+    if (stat(file_name, &st) == 0) {
+        return true;
+    }
+
+    return false;
 }
 
 
@@ -101,12 +111,8 @@ bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t len
     written_bytes = fprintf(file, data, sd_card->card->cid.name);
     fclose(file);
 
-    if(written_bytes < 0){
+    if(written_bytes < 1){
         ESP_LOGE(TAG, "UNABLE TO WRITE DATA TO SD CARD");
-        return false;
-    }else if(length - written_bytes - 1 > 0){
-        ESP_LOGW(TAG, "NO MORE MEMORY LEFT, written_bytes %d, data length %d",
-                                                        written_bytes, length);
         return false;
     }
 
