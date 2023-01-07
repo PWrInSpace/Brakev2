@@ -62,7 +62,7 @@ FlashResult FLASH_write(const char* file_name, const char* data, size_t size) {
     return FLASH_IS_NOT_INITIALIZED;
   }
 
-  file = fopen("/spiffs/test.txt", "a");
+  file = fopen(file_name, "a");
   assert(file != NULL);
   if (file == NULL) {
     return FLASH_OPEN_ERROR;
