@@ -11,6 +11,7 @@
 
 #include "spi.h"
 #include "i2c.h"
+#include "uart.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
 #include "sdcard.h"
@@ -55,6 +56,7 @@ typedef struct {
 extern rtos_t rtos;
 extern spi_t sd_spi;
 extern i2c_t i2c_sensors;
+extern uart_t uart;
 extern sd_card_t sd_card;
 extern LSM6DS3_t acc_sensor;
 

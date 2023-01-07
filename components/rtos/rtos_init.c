@@ -12,6 +12,7 @@
 rtos_t rtos;
 spi_t sd_spi;
 i2c_t i2c_sensors;
+uart_t uart;
 sd_card_t sd_card;
 LSM6DS3_t acc_sensor;
 
@@ -51,7 +52,7 @@ bool rtos_test_mode_init(void) {
         return false;
     }
 
-    xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
+    xTaskCreatePinnedToCore(test_mode_task, "sensor_task", 8000, NULL,
                             10, &rtos.sensor_task, APP_CPU_NUM);
     xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
                             10, &rtos.main_task, APP_CPU_NUM);
@@ -94,12 +95,15 @@ void init_task(void *arg) {
     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
     LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
     SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
-    console_init();
-    console_register_commands(console_commands,
-        sizeof(console_commands)/sizeof(console_commands[0]));
     event_loop_init();
     event_loop_register();
-    rtos_init();
+    // console_init();
+    // console_register_commands(console_commands,
+    //     sizeof(console_commands)/sizeof(console_commands[0]));
+    // rtos_init();
+
+    UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
+    rtos_test_mode_init();
 
     vTaskDelete(NULL);
 }
