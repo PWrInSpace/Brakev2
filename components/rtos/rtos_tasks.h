@@ -16,6 +16,11 @@
 #include "LSM6DS3.h"
 #include "sdcard.h"
 
+typedef enum {
+    TASK_PRIORITY_LOW = 0,
+    TASK_PRIORITY_MID = 5,
+    TASK_PRIORITY_HIGH = 10,
+} TASKS_PRIORITY;
 
 typedef enum {
     SAVE_DATA_EVENT,

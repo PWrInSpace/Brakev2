@@ -32,11 +32,11 @@ bool rtos_init(void) {
     }
 
     xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
-                            10, &rtos.sensor_task, APP_CPU_NUM);
+                            TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
     xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
-                            10, &rtos.main_task, APP_CPU_NUM);
+                            TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
     xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-                            5, &rtos.memory_task, APP_CPU_NUM);
+                            TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
 
     if (rtos.sensor_task == NULL || rtos.main_task == NULL || rtos.memory_task == NULL) {
         return false;
@@ -53,11 +53,11 @@ bool rtos_test_mode_init(void) {
     }
 
     xTaskCreatePinnedToCore(test_mode_task, "sensor_task", 8000, NULL,
-                            10, &rtos.sensor_task, APP_CPU_NUM);
+                            TASK_PRIORITY_HIGH, &rtos.sensor_task, APP_CPU_NUM);
     xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
-                            10, &rtos.main_task, APP_CPU_NUM);
+                            TASK_PRIORITY_HIGH, &rtos.main_task, APP_CPU_NUM);
     xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-                            5, &rtos.memory_task, APP_CPU_NUM);
+                            TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
 
     if (rtos.sensor_task == NULL || rtos.main_task == NULL || rtos.memory_task == NULL) {
         return false;
