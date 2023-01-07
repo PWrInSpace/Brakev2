@@ -6,5 +6,8 @@
 
 int CLI_test(int argc, char** argv);
 int CLI_state_machine_get_state(int argc, char **argv);
+int CLI_reset_device(int argc, char **argv);
+int CLI_reset_reason(int argc, char **argv);
+
 
 #endif

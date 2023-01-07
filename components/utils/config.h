@@ -17,8 +17,8 @@
 #define PCB_SCL 22
 
 // UART
-#define RX
-#define TX
+#define PCB_RX 3
+#define PCB_TX 1
 
 // PWMs
 #define PCB_SERVO1_PWM 17
