@@ -1,22 +1,26 @@
-#include "sdcard.h"
-#include "brejk_system.h"
+// Copyright 2022 PWrInSpace, Kuba
 #include <string.h>
+#include <memory.h>
+#include "sdcard.h"
+#include "rtos_tasks.h"
 
 #define TAG "MEM_TASK"
 #define FILE_NAME "/sdcard/data"
-extern rtos_t rtos;
 extern sd_card_t sd_card;
 
 static bool create_path_to_file(char *file_path, size_t size) {
-    char file[size + 20];
-    for(int i = 0; i < 20; ++i) {
-        snprintf(file, sizeof(file), "%s%d.txt", file_path, i);
-        if (SD_file_exists(file) == false) {
-            memcpy(file_path, file, size);
+    char *path = (char*)calloc(size, sizeof(char));
+
+    for (int i = 0; i < 100; ++i) {
+        snprintf(path, size, "%s%d.txt", file_path, i);
+        if (SD_file_exists(path) == false) {
+            memcpy(file_path, path, size);
+            free(path);
             return true;
         }
     }
 
+    free(path);
     return false;
 }
 
@@ -47,10 +51,11 @@ void memory_task(void *arg) {
     ESP_LOGI(TAG, "Using file path %s", file_path);
 
 
-    while(1) {
+    while (1) {
         if (xQueueReceive(rtos.data_to_memory, (void*) &data_to_save, portMAX_DELAY) == pdTRUE) {
             if (can_save_data_to_sd(data_to_save.save_option) == true) {
-                snprintf(data_string, sizeof(data_string), "DUPA;%d;%ld", data_to_save.data.state, data_to_save.data.up_time);
+                snprintf(data_string, sizeof(data_string), "DUPA;%d;%ld",
+                        data_to_save.data.state, data_to_save.data.up_time);
                 ESP_LOGI(TAG, "SAVING TO SD: %s", data_string);
                 SD_write(&sd_card, file_path, data_string, sizeof(data_string));
             }

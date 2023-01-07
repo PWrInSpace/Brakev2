@@ -20,14 +20,17 @@ static bool SD_mount(sd_card_t *sd_card) {
     slot_config.gpio_cs = sd_card->cs_pin;
     slot_config.host_id = host.slot;
 
-    res = esp_vfs_fat_sdspi_mount(sd_card->mount_point, &host, &slot_config, &mount_config, &sd_card->card);
+    res = esp_vfs_fat_sdspi_mount(sd_card->mount_point, &host, &slot_config,
+                                  &mount_config, &sd_card->card);
     if (res != ESP_OK) {
         if (res == ESP_FAIL) {
             ESP_LOGE(TAG, "Failed to mount filesystem. "
-                     "If you want the card to be formatted, set the CONFIG_EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+                     "If you want the card to be formatted, set the"
+                     "CONFIG_EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
         } else {
             ESP_LOGE(TAG, "Failed to initialize the card (%s). "
-                     "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(res));
+                     "Make sure SD card lines have pull-up resistors in place.",
+                     esp_err_to_name(res));
         }
         return false;
     }
@@ -40,7 +43,7 @@ bool SD_init(sd_card_t *sd_card, spi_host_device_t spi_host, uint8_t cs_pin, con
     sd_card->cs_pin = cs_pin;
     sd_card->mount_point = m_point;
 
-    //Options for mounting the filesystem
+    // Options for mounting the filesystem
     if (SD_mount(sd_card) == false) {
         return false;
     }
@@ -65,7 +68,7 @@ bool SD_unmount(sd_card_t *sd_card) {
 
     esp_err_t res;
     res = esp_vfs_fat_sdcard_unmount(sd_card->mount_point, sd_card->card);
-    if(res != ESP_OK){
+    if (res != ESP_OK) {
         ESP_LOGE(TAG, "UNMOUNT ERROR\n");
         return false;
     }
@@ -74,7 +77,7 @@ bool SD_unmount(sd_card_t *sd_card) {
 }
 
 
-bool SD_remount(sd_card_t *sd_card){
+bool SD_remount(sd_card_t *sd_card) {
     bool res;
     res = SD_unmount(sd_card);
     if (res == false) {
@@ -85,7 +88,7 @@ bool SD_remount(sd_card_t *sd_card){
     return res;
 }
 
-bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t length){
+bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t length) {
     esp_err_t res;
 
     if (sd_card->mounted == false) {
@@ -95,14 +98,14 @@ bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t len
     }
 
     res = sdmmc_get_status(sd_card->card);
-    if(res != ESP_OK){
+    if (res != ESP_OK) {
         ESP_LOGE(TAG, "CARD ERROR, REMOOUNTING...");
         SD_remount(sd_card);
         return false;
     }
 
     FILE *file = fopen(path, "a");
-    if(file == NULL){
+    if (file == NULL) {
         ESP_LOGE(TAG, "FILE OPEN ERROR");
         return false;
     }
@@ -111,7 +114,7 @@ bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t len
     written_bytes = fprintf(file, data, sd_card->card->cid.name);
     fclose(file);
 
-    if(written_bytes < 1){
+    if (written_bytes < 1) {
         ESP_LOGE(TAG, "UNABLE TO WRITE DATA TO SD CARD");
         return false;
     }

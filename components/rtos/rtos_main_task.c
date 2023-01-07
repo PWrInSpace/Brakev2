@@ -1,10 +1,11 @@
-#include "brejk_system.h"
+// Copyright 2022 PWrInSpace, Kuba
+
 #include "utils.h"
 #include "state_machine.h"
+#include "rtos_tasks.h"
 
 #define TAG "MAIN TASK"
 
-extern rtos_t rtos;
 
 static rocket_data_t main_data;
 static esp_event_loop_handle_t event_handle;
@@ -102,9 +103,7 @@ esp_event_loop_handle_t event_get_handle(void) {
 }
 
 /********************** MAIN TASK ************************/
-
 void main_task(void *arg) {
-
     while (1) {
         ESP_LOGI(TAG, "application_task: running application task");
         esp_event_loop_run(event_handle, 1000);

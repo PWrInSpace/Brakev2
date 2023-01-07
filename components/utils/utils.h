@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace, Kuba
+
 #ifndef UTILS_H
 #define UTILS_H
 

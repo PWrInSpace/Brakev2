@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace, Kuba
+
 #include "utils.h"
 #include "esp_sntp.h"
 
