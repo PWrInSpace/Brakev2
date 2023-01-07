@@ -204,7 +204,7 @@ SM_Response SM_run(void) {
 }
 
 SM_Response SM_destroy(void) {
-    if (sm.state_task != NULL){
+    if (sm.state_task != NULL) {
         vTaskDelete(sm.state_task);
     }
 
