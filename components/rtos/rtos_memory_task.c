@@ -54,9 +54,8 @@ void memory_task(void *arg) {
     while (1) {
         if (xQueueReceive(rtos.data_to_memory, (void*) &data_to_save, portMAX_DELAY) == pdTRUE) {
             if (can_save_data_to_sd(data_to_save.save_option) == true) {
-                snprintf(data_string, sizeof(data_string), "DUPA;%d;%ld",
+                snprintf(data_string, sizeof(data_string), "Test;%d;%ld",
                         data_to_save.data.state, data_to_save.data.up_time);
-                ESP_LOGI(TAG, "SAVING TO SD: %s", data_string);
                 SD_write(&sd_card, file_path, data_string, sizeof(data_string));
             }
 

@@ -97,13 +97,13 @@ void init_task(void *arg) {
     SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
     event_loop_init();
     event_loop_register();
-    // console_init();
-    // console_register_commands(console_commands,
-    //     sizeof(console_commands)/sizeof(console_commands[0]));
-    // rtos_init();
+    console_init();
+    console_register_commands(console_commands,
+        sizeof(console_commands)/sizeof(console_commands[0]));
+    rtos_init();
 
-    UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
-    rtos_test_mode_init();
+    // UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
+    // rtos_test_mode_init();
 
     vTaskDelete(NULL);
 }
