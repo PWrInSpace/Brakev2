@@ -13,6 +13,7 @@ set(EXTRA_COMPONENT_DIRS "../components")
 
 
 set(TEST_FILES_DIRS
+    "memory"
     "sensor"
     "testable"
     "sys"
@@ -24,3 +25,5 @@ set(TEST_COMPONENTS ${TEST_FILES_DIRS} CACHE STRING "List of components to test"
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(brakev2)
+
+spiffs_create_partition_image(storage test_spiffs_data FLASH_IN_PROJECT)

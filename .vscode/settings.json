@@ -19,6 +19,9 @@
         "adc_channel.h": "c",
         "LPS25H.h": "c",
         "i2c.h": "c",
+        "nvs_flash.h": "c",
+        "flash.h": "c",
+        "*.h": "c",
         "array": "c",
         "string": "c",
         "string_view": "c",
@@ -30,7 +33,8 @@
         "sensor/LPS25H.h",
         "sensor/voltageMeasure.h"
     ],
+    "C_Cpp.intelliSenseEngine": "default",
+    "cmake.configureOnOpen": false,
     "idf.adapterTargetName": "esp32",
-    "idf.flashType": "UART",
-    "C_Cpp.intelliSenseEngine": "Tag Parser"
+    "C_Cpp.intelliSenseEngineFallback": "enabled"
 }
