@@ -169,18 +169,21 @@ static void SM_loop(void *arg) {
             }
 
             if (sm.current_state + 1 >= sm.states_quantity) {
+                ESP_LOGI(TAG, "End function enable");
                 sm_completed = true;
             }
 
             xSemaphoreGive(sm.current_state_mutex);
-        } else if (sm_completed == true) {  // end function
+        }
+
+        if (sm_completed == true) {  // end function
             if (sm.end_function != NULL) {
                 sm.end_function();
                 vTaskDelay(sm.end_fct_frq_ms / portTICK_PERIOD_MS - 10);
             }
         }
 
-        vTaskDelay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
@@ -200,3 +203,22 @@ SM_Response SM_run(void) {
     return SM_OK;
 }
 
+SM_Response SM_destroy(void) {
+    if (sm.state_task != NULL){
+        vTaskDelete(sm.state_task);
+    }
+
+    if (sm.current_state_mutex != NULL) {
+        vSemaphoreDelete(sm.current_state_mutex);
+    }
+
+    sm.states = NULL;
+    sm.states_quantity = 0;
+    sm.current_state = 0;
+    sm.end_function = NULL;
+    sm.end_fct_frq_ms = 0;
+    sm.state_task = NULL;
+    sm.current_state_mutex = NULL;
+
+    return SM_OK;
+}
