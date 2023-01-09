@@ -42,8 +42,9 @@ SM_Response SM_set_states(state_config_t *states, uint8_t states_number);
 SM_Response SM_set_end_function(end_looped_function fct, uint32_t freq_ms);
 uint8_t SM_get_current_state(void);
 SM_Response SM_change_state(state_id new_state);
-SM_Response SM_change_state_ISR(uint8_t new_state);
+SM_Response SM_change_state_ISR(state_id new_state);
 SM_Response SM_run(void);
+SM_Response SM_destroy(void);
 
 
 
