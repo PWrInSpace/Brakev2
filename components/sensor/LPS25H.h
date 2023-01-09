@@ -53,7 +53,11 @@
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
-// TODO(Glibuś) enum for errors
+typedef enum{
+  LPS25H_OK = 0,
+  LPS25H_ReadError,
+  LPS25H_WriteError
+} LPS25HResult;
 
 typedef struct {
   i2c_config_t conf;
@@ -64,20 +68,19 @@ typedef struct {
 /*!
   \brief Initialize the sensor. \n
   if conf == 0 setup the i2c alongside sensor variables
-  \return ESP_FAIL if param config fails,
-  then return i2c_driver_install (ESP_OK if successful, ESP_FAIL otherwise)
+  \return LPS25H_OK
 */
-esp_err_t LPS25HInit(LPS25H *lps, int sda, int scl, i2c_port_t portNum,
+LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum,
                      uint8_t i2cAddress, i2c_config_t *conf);
 /*!
   \brief Read sensor register of length len
   \return ESP_OK if the read is successful, ESP_FAIL otherwise
 */
-esp_err_t LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
+LPS25HResult LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
                              size_t len);
 
 /*!
   \brief Write to the sensor register
   \return ESP_OK if the write is successful, ESP_FAIL otherwise
 */
-esp_err_t LPS25HRegisterWrite(LPS25H *lps, uint8_t regAddr, uint8_t data);
+LPS25HResult LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr, uint8_t data);

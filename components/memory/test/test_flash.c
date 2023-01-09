@@ -23,7 +23,7 @@ TEST_CASE("Flash read file test", "[flash") {
   FlashResult res;
   res = FLASH_read_all_data(READ_FILE_NAME, readData, 1000000);
   TEST_ASSERT_EQUAL(FLASH_OK, res);
-  // ESP_LOGI(TAG, "%s", readData);
+  ESP_LOGI(TAG, "%s", readData);
 
   TEST_ASSERT_EQUAL_STRING(EXPECTED_DATA, readData);
 }

@@ -49,7 +49,7 @@ bool i2cwrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len) {
 
 TEST_CASE("LSM6DS3 init - correct", "[LSM6DS3]") {
     bool res;
-    initialize_i2c();
+    // initialize_i2c(); 
     res = LSM6DS3_init(&lsm_sensor, 0x6B, i2cwrite, i2cread);
     TEST_ASSERT_EQUAL(res, true);
 }
