@@ -53,6 +53,8 @@
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
+// TODO(Glibuś) enum for errors
+
 typedef struct {
   i2c_config_t conf;
   i2c_port_t port;
