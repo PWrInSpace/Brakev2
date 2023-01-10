@@ -34,7 +34,7 @@ class FlightData:
 
         return data_strings
 
-    def load_data_from_file(self, **kwargs):
+    def qtcb_load_data_from_file(self, **kwargs) -> bool:
         if "path" not in kwargs:
             raise RuntimeError("Flight data reader: Can not find path in arguments")
 
@@ -44,6 +44,8 @@ class FlightData:
         with open(self.prepared_data_file_name, "w") as file:
             for line in prepared_data:
                 file.write(line + '\n')
+
+        return True
 
 if __name__ == "__main__":
    fd = FlightData()

@@ -1,10 +1,24 @@
 import serial
+import serial.tools.list_ports
 import logging
 import re
 
 class CLI():
-    def __init__(self, ):
+    def __init__(self):
         self.serial = None
+
+    @staticmethod
+    def get_port_list() -> list:
+        ports = serial.tools.list_ports.comports()
+        ports_str = []
+        for port, desc, hwid in sorted(ports):
+            ports_str.append(str(port))
+
+        return ports_str
+
+    @staticmethod
+    def get_baudrate_list() -> list:
+        return ["9600", "115200"]
 
     def connect(self, port = "/dev/ttyUSB1", baudrate = 115200, _timeout = 1) -> bool:
         try:
