@@ -1,7 +1,6 @@
 // Copyright 2022 PWrInSpace
 
 #include "esp_log.h"
-#include "sensor.h"
 #include "unity.h"
 #include "voltageMeasure.h"
 
