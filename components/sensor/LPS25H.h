@@ -8,7 +8,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-#define LPS_TAG "LPS25H Error"
+#define LPS_TAG "LPS25H"
 /*!
  \brief LPS25H_I2C_ADDR_SA0_L
       sensor I2C address if SA0 is pulled low
@@ -56,13 +56,15 @@
 typedef enum {
   LPS25H_OK = 0,
   LPS25H_ReadError,
-  LPS25H_WriteError
+  LPS25H_WriteError,
+  LPS25H_ConfigError
 } LPS25HResult;
 
 typedef struct {
   i2c_config_t conf;
   i2c_port_t port;
   uint8_t addr;
+  bool fifoConfigured : 1;
 } LPS25H;
 
 /*!
@@ -88,12 +90,32 @@ LPS25HResult LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr,
 
 /*!
   \brief Set the sensor in suggested configuration
-         from datasheet (sec. 9.1). Note that all the other 
+         from datasheet (sec. 9.1). Note that all the other
          functions are operating with these settings in mind.
-         
+
          RES_CONF -> 0x05
-         FIFO_CTRL -> 0xC0
+         FIFO_CTRL -> 0xDF -> 32 samples average
          CTRL_REG2 -> 0x40
+         CTRL_REG1 -> 0xA0 -> 7Hz data rate
+  \returns LPS25H_OK if all i2c write operations are successful,
+           LPS25H_ConfigError otherwise 
 */
 LPS25HResult LPS25HStdConf(LPS25H *lps);
 
+/*!
+  \brief Read pressure from sensor and save to pressureVal 
+  \returns LPS25H_OK if read and write operations return LPS25_OK
+  \returns LPS25H_ConfigError if the sensor has not been configured
+          by LPS25HStdConf
+  \returns LPS25H_ReadError if register read operations fail
+*/
+LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal);
+
+/*!
+  \brief Read temperature from sensor and save to tempVal 
+  \returns LPS25H_OK if read and write operations return LPS25_OK
+  \returns LPS25H_ConfigError if the sensor has not been configured
+          by LPS25HStdConf
+  \returns LPS25H_ReadError if register read operations fail
+*/
+LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal);

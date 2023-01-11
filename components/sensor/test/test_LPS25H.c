@@ -12,6 +12,8 @@
 static i2c_config_t i2c_config;
 static i2c_port_t i2c_port = I2C_NUM_1;
 
+static LPS25H lps;
+
 static void initialize_i2c() {
   i2c_config.mode = I2C_MODE_MASTER;
   i2c_config.sda_io_num = 21;
@@ -32,15 +34,36 @@ static void initialize_i2c() {
 }
 
 TEST_CASE("LPS25H init test- pre defined i2c", "[LPS25H]") {
-  uint8_t data[8] = {{0}};
+  uint8_t data = 0;
 
   initialize_i2c();
 
-  LPS25H lps;
   uint8_t lpsReg = LPS25H_REG_WHO_AM_I;
   LPS25HInit(&lps, i2c_port, LPS25H_I2C_ADDR_SA0_H, &i2c_config);
-  LPS25HRegisterRead(&lps, lpsReg, data, 8);
+  LPS25HRegisterRead(&lps, lpsReg, &data, 1);
 
-  TEST_ASSERT_EQUAL(0xBD, data[0]);
+  TEST_ASSERT_EQUAL(0xBD, data);
   //   i2c_driver_delete(i2c_port);
+}
+
+TEST_CASE("LPS25H standard config test", "[LPS25H]") {
+  LPS25HResult res = LPS25HStdConf(&lps);
+  TEST_ASSERT_EQUAL(LPS25H_OK, res);
+  vTaskDelay(500 / portTICK_PERIOD_MS);
+}
+
+TEST_CASE("LPS25H read pressure test", "[LPS25H]") {
+  float pressure;
+  LPS25HResult res = LPS25HReadPressure(&lps, &pressure);
+  TEST_ASSERT_FLOAT_WITHIN(20, 1015, pressure);
+
+  TEST_ASSERT_EQUAL(LPS25H_OK, res);
+}
+
+TEST_CASE("LPS25H read temperature test", "[LPS25H]") {
+  float temp;
+  LPS25HResult res = LPS25HReadTemperature(&lps, &temp);
+  TEST_ASSERT_FLOAT_WITHIN(2, 28, temp);  // kurcze jak cieplo mam
+
+  TEST_ASSERT_EQUAL(LPS25H_OK, res);
 }
