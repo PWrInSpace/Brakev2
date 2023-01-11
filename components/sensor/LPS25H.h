@@ -5,10 +5,10 @@
 #include <stdint.h>
 
 #include "driver/i2c.h"
-#include "freertos/FreeRTOS.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
 
-#define LPS_TAG "LPS25H Error"
+#define LPS_TAG "LPS25H"
 /*!
  \brief LPS25H_I2C_ADDR_SA0_L
       sensor I2C address if SA0 is pulled low
@@ -53,31 +53,69 @@
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
-// TODO(Glibuś) enum for errors
+typedef enum {
+  LPS25H_OK = 0,
+  LPS25H_ReadError,
+  LPS25H_WriteError,
+  LPS25H_ConfigError
+} LPS25HResult;
 
 typedef struct {
   i2c_config_t conf;
   i2c_port_t port;
   uint8_t addr;
+  bool fifoConfigured : 1;
 } LPS25H;
 
 /*!
   \brief Initialize the sensor. \n
   if conf == 0 setup the i2c alongside sensor variables
-  \return ESP_FAIL if param config fails,
-  then return i2c_driver_install (ESP_OK if successful, ESP_FAIL otherwise)
+  \return LPS25H_OK
 */
-esp_err_t LPS25HInit(LPS25H *lps, int sda, int scl, i2c_port_t portNum,
-                     uint8_t i2cAddress, i2c_config_t *conf);
+LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress,
+                        i2c_config_t *conf);
 /*!
   \brief Read sensor register of length len
   \return ESP_OK if the read is successful, ESP_FAIL otherwise
 */
-esp_err_t LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
-                             size_t len);
+LPS25HResult LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
+                                size_t len);
 
 /*!
   \brief Write to the sensor register
   \return ESP_OK if the write is successful, ESP_FAIL otherwise
 */
-esp_err_t LPS25HRegisterWrite(LPS25H *lps, uint8_t regAddr, uint8_t data);
+LPS25HResult LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr,
+                                     uint8_t data);
+
+/*!
+  \brief Set the sensor in suggested configuration
+         from datasheet (sec. 9.1). Note that all the other
+         functions are operating with these settings in mind.
+
+         RES_CONF -> 0x05
+         FIFO_CTRL -> 0xDF -> 32 samples average
+         CTRL_REG2 -> 0x40
+         CTRL_REG1 -> 0xA0 -> 7Hz data rate
+  \returns LPS25H_OK if all i2c write operations are successful,
+           LPS25H_ConfigError otherwise 
+*/
+LPS25HResult LPS25HStdConf(LPS25H *lps);
+
+/*!
+  \brief Read pressure from sensor and save to pressureVal 
+  \returns LPS25H_OK if read and write operations return LPS25_OK
+  \returns LPS25H_ConfigError if the sensor has not been configured
+          by LPS25HStdConf
+  \returns LPS25H_ReadError if register read operations fail
+*/
+LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal);
+
+/*!
+  \brief Read temperature from sensor and save to tempVal 
+  \returns LPS25H_OK if read and write operations return LPS25_OK
+  \returns LPS25H_ConfigError if the sensor has not been configured
+          by LPS25HStdConf
+  \returns LPS25H_ReadError if register read operations fail
+*/
+LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal);
