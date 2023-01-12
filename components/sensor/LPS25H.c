@@ -66,7 +66,7 @@ LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal) {
   pressureProcessed |= (int32_t)pressureRaw[0];
   ESP_LOGI(LPS_TAG, "Raw pressure value: %ld, pressure in bytes %d %d %d",
            pressureProcessed, pressureRaw[2], pressureRaw[1], pressureRaw[0]);
-  (*pressureVal) = ((float)pressureProcessed / 4096.f);
+  *pressureVal = ((float)pressureProcessed / 4096.f);
   return res == LPS25H_OK ? LPS25H_OK : LPS25H_ReadError;
 }
 
@@ -84,6 +84,17 @@ LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal) {
   tempProcessed |= (int16_t)tempRaw[0];
   ESP_LOGI(LPS_TAG, "Raw temp value: %d, temp in bytes %d %d ", tempProcessed,
            tempRaw[1], tempRaw[0]);
-  (*tempVal) = ((float)tempProcessed / 480.f + 42.5f);
+  *tempVal = ((float)tempProcessed / 480.f + 42.5f);
   return res == LPS25H_OK ? LPS25H_OK : LPS25H_ReadError;
+}
+
+LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height, float *press){
+  LPS25HResult res = LPS25H_OK;
+  res |= LPS25HReadPressure(lps, press);
+  if(res != LPS25H_OK){
+    *height = 0;
+    return LPS25H_ReadError;
+  }
+  *height = 44330 * (1 - pow((*press / REFERENCE_PRESSURE_HPA), 1.f / 5.255f));
+  return LPS25H_OK;
 }
