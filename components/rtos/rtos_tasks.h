@@ -14,6 +14,7 @@
 #include "uart.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
+#include "voltageMeasure.h"
 #include "sdcard.h"
 
 typedef enum {
@@ -44,7 +45,9 @@ typedef struct {
 } rtos_t;
 
 typedef struct {
-    uint8_t todo;
+    float height;
+    LSM6DS3_acc_t acc;
+    float vBatt;
 } sensors_t;
 
 typedef struct {
