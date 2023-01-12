@@ -67,3 +67,11 @@ TEST_CASE("LPS25H read temperature test", "[LPS25H]") {
 
   TEST_ASSERT_EQUAL(LPS25H_OK, res);
 }
+
+TEST_CASE("LPS25H read height and pressure tests", "[LPS25H]") {
+  float height, pressure;
+  LPS25HResult res = LPS25HGetHeightAndPressure(&lps, &height, &pressure);
+  TEST_ASSERT_FLOAT_WITHIN(20, 1015, pressure);  // kurcze jak cieplo mam
+  TEST_ASSERT_FLOAT_WITHIN(125, 20, height);
+  TEST_ASSERT_EQUAL(LPS25H_OK, res);
+}

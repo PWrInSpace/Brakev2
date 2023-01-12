@@ -7,6 +7,7 @@
 #include "driver/i2c.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include <math.h>
 
 #define LPS_TAG "LPS25H"
 /*!
@@ -53,6 +54,8 @@
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
+#define REFERENCE_PRESSURE_HPA 1013.25f
+
 typedef enum {
   LPS25H_OK = 0,
   LPS25H_ReadError,
@@ -98,12 +101,12 @@ LPS25HResult LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr,
          CTRL_REG2 -> 0x40
          CTRL_REG1 -> 0xA0 -> 7Hz data rate
   \returns LPS25H_OK if all i2c write operations are successful,
-           LPS25H_ConfigError otherwise 
+           LPS25H_ConfigError otherwise
 */
 LPS25HResult LPS25HStdConf(LPS25H *lps);
 
 /*!
-  \brief Read pressure from sensor and save to pressureVal 
+  \brief Read pressure from sensor and save to pressureVal
   \returns LPS25H_OK if read and write operations return LPS25_OK
   \returns LPS25H_ConfigError if the sensor has not been configured
           by LPS25HStdConf
@@ -112,10 +115,20 @@ LPS25HResult LPS25HStdConf(LPS25H *lps);
 LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal);
 
 /*!
-  \brief Read temperature from sensor and save to tempVal 
+  \brief Read temperature from sensor and save to tempVal
   \returns LPS25H_OK if read and write operations return LPS25_OK
   \returns LPS25H_ConfigError if the sensor has not been configured
           by LPS25HStdConf
   \returns LPS25H_ReadError if register read operations fail
 */
 LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal);
+
+/*!
+  Read pressure from sensor and save to press, convert to height and
+  save to height
+  \returns LPS25H_OK if read and write operations return LPS25_OK
+  \returns LPS25H_ConfigError if the sensor has not been configured
+          by LPS25HStdConf
+  \returns LPS25H_ReadError if register read operations fail
+*/
+LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height, float *press);
