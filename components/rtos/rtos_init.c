@@ -10,12 +10,16 @@
 
 #define TAG "INIT"
 
+#define BATT_ADC_CAL 3.3f
+
 rtos_t rtos;
 spi_t sd_spi;
 i2c_t i2c_sensors;
 uart_t uart;
 sd_card_t sd_card;
 LSM6DS3_t acc_sensor;
+LPS25H press_sensor;
+VoltageMeasure vMes;
 
 esp_console_cmd_t console_commands[] = {
     {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
@@ -91,16 +95,19 @@ void init_task(void *arg) {
     SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
+    
     NVS_init();
-
-    // LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-    // LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
-    // LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
-    // SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+    
+    LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
+    LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
+    LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
+    LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
+    LPS25HStdConf(&press_sensor);
+    voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
 
     event_loop_init();
     event_loop_register();
-
 
     uint8_t test_mode = 0;
     NVS_read_uint8(NVS_TEST_MODE, &test_mode);
