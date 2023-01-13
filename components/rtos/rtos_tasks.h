@@ -16,6 +16,16 @@
 #include "LSM6DS3.h"
 #include "voltageMeasure.h"
 #include "sdcard.h"
+#include "flash_nvs.h"
+
+// NVS KEYS
+#define NVS_TEST_MODE "TEST_MODE"
+
+
+typedef enum {
+    TEST_MODE_ON = 1,
+    TEST_MODE_OFF = 0,
+} TEST_MODE;
 
 typedef enum {
     TASK_PRIORITY_LOW = 0,
