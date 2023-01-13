@@ -2,11 +2,9 @@
 
 #include "LPS25H.h"
 
-LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress,
-                        i2c_config_t *conf) {
+LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress) {
   lps->port = portNum;
   lps->addr = i2cAddress;
-  lps->conf = *conf;
   lps->fifoConfigured = false;
   ESP_LOGI(LPS_TAG, "Sensor initiated");
   return LPS25H_OK;

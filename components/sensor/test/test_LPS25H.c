@@ -39,7 +39,7 @@ TEST_CASE("LPS25H init test- pre defined i2c", "[LPS25H]") {
   initialize_i2c();
 
   uint8_t lpsReg = LPS25H_REG_WHO_AM_I;
-  LPS25HInit(&lps, i2c_port, LPS25H_I2C_ADDR_SA0_H, &i2c_config);
+  LPS25HInit(&lps, i2c_port, LPS25H_I2C_ADDR_SA0_H);
   LPS25HRegisterRead(&lps, lpsReg, &data, 1);
 
   TEST_ASSERT_EQUAL(0xBD, data);

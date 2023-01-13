@@ -15,6 +15,7 @@ i2c_t i2c_sensors;
 uart_t uart;
 sd_card_t sd_card;
 LSM6DS3_t acc_sensor;
+LPS25H press_sensor;
 
 esp_console_cmd_t console_commands[] = {
     {"test", "test1234", NULL, CLI_test, NULL},
@@ -94,6 +95,7 @@ void init_task(void *arg) {
     LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
     LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
+    LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
     SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
     event_loop_init();
     event_loop_register();

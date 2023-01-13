@@ -45,8 +45,10 @@ typedef struct {
 } rtos_t;
 
 typedef struct {
-    float height;
     LSM6DS3_acc_t acc;
+    float height;
+    float pressure;
+    float temp;
     float vBatt;
 } sensors_t;
 
@@ -67,6 +69,7 @@ extern i2c_t i2c_sensors;
 extern uart_t uart;
 extern sd_card_t sd_card;
 extern LSM6DS3_t acc_sensor;
+extern LPS25H press_sensor;
 
 ESP_EVENT_DECLARE_BASE(TASK_EVENTS);
 bool event_loop_init(void);

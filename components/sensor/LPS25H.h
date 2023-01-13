@@ -64,19 +64,16 @@ typedef enum {
 } LPS25HResult;
 
 typedef struct {
-  i2c_config_t conf;
   i2c_port_t port;
   uint8_t addr;
   bool fifoConfigured : 1;
 } LPS25H;
 
 /*!
-  \brief Initialize the sensor. \n
-  if conf == 0 setup the i2c alongside sensor variables
+  \brief Initialize the sensor.
   \return LPS25H_OK
 */
-LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress,
-                        i2c_config_t *conf);
+LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress);
 /*!
   \brief Read sensor register of length len
   \return ESP_OK if the read is successful, ESP_FAIL otherwise
