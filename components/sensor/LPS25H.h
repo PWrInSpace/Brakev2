@@ -3,6 +3,7 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "driver/i2c.h"
 #include "esp_log.h"
@@ -53,6 +54,8 @@
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
+#define REFERENCE_PRESSURE_HPA 1013.25f
+
 typedef enum {
   LPS25H_OK = 0,
   LPS25H_ReadError,
@@ -61,19 +64,16 @@ typedef enum {
 } LPS25HResult;
 
 typedef struct {
-  i2c_config_t conf;
   i2c_port_t port;
   uint8_t addr;
   bool fifoConfigured : 1;
 } LPS25H;
 
 /*!
-  \brief Initialize the sensor. \n
-  if conf == 0 setup the i2c alongside sensor variables
+  \brief Initialize the sensor.
   \return LPS25H_OK
 */
-LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress,
-                        i2c_config_t *conf);
+LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress);
 /*!
   \brief Read sensor register of length len
   \return ESP_OK if the read is successful, ESP_FAIL otherwise
@@ -98,12 +98,12 @@ LPS25HResult LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr,
          CTRL_REG2 -> 0x40
          CTRL_REG1 -> 0xA0 -> 7Hz data rate
   \returns LPS25H_OK if all i2c write operations are successful,
-           LPS25H_ConfigError otherwise 
+           LPS25H_ConfigError otherwise
 */
 LPS25HResult LPS25HStdConf(LPS25H *lps);
 
 /*!
-  \brief Read pressure from sensor and save to pressureVal 
+  \brief Read pressure from sensor and save to pressureVal
   \returns LPS25H_OK if read and write operations return LPS25_OK
   \returns LPS25H_ConfigError if the sensor has not been configured
           by LPS25HStdConf
@@ -112,10 +112,20 @@ LPS25HResult LPS25HStdConf(LPS25H *lps);
 LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal);
 
 /*!
-  \brief Read temperature from sensor and save to tempVal 
+  \brief Read temperature from sensor and save to tempVal
   \returns LPS25H_OK if read and write operations return LPS25_OK
   \returns LPS25H_ConfigError if the sensor has not been configured
           by LPS25HStdConf
   \returns LPS25H_ReadError if register read operations fail
 */
 LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal);
+
+/*!
+  Read pressure from sensor and save to press, convert to height and
+  save to height
+  \returns LPS25H_OK if read and write operations return LPS25_OK
+  \returns LPS25H_ConfigError if the sensor has not been configured
+          by LPS25HStdConf
+  \returns LPS25H_ReadError if register read operations fail
+*/
+LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height, float *press);

@@ -39,7 +39,7 @@ TEST_CASE("LPS25H init test- pre defined i2c", "[LPS25H]") {
   initialize_i2c();
 
   uint8_t lpsReg = LPS25H_REG_WHO_AM_I;
-  LPS25HInit(&lps, i2c_port, LPS25H_I2C_ADDR_SA0_H, &i2c_config);
+  LPS25HInit(&lps, i2c_port, LPS25H_I2C_ADDR_SA0_H);
   LPS25HRegisterRead(&lps, lpsReg, &data, 1);
 
   TEST_ASSERT_EQUAL(0xBD, data);
@@ -65,5 +65,13 @@ TEST_CASE("LPS25H read temperature test", "[LPS25H]") {
   LPS25HResult res = LPS25HReadTemperature(&lps, &temp);
   TEST_ASSERT_FLOAT_WITHIN(2, 28, temp);  // kurcze jak cieplo mam
 
+  TEST_ASSERT_EQUAL(LPS25H_OK, res);
+}
+
+TEST_CASE("LPS25H read height and pressure tests", "[LPS25H]") {
+  float height, pressure;
+  LPS25HResult res = LPS25HGetHeightAndPressure(&lps, &height, &pressure);
+  TEST_ASSERT_FLOAT_WITHIN(20, 1015, pressure);  // kurcze jak cieplo mam
+  TEST_ASSERT_FLOAT_WITHIN(125, 20, height);
   TEST_ASSERT_EQUAL(LPS25H_OK, res);
 }

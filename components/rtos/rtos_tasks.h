@@ -14,6 +14,7 @@
 #include "uart.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
+#include "voltageMeasure.h"
 #include "sdcard.h"
 
 typedef enum {
@@ -44,7 +45,11 @@ typedef struct {
 } rtos_t;
 
 typedef struct {
-    uint8_t todo;
+    LSM6DS3_acc_t acc;
+    float height;
+    float pressure;
+    float temp;
+    float vBatt;
 } sensors_t;
 
 typedef struct {
@@ -64,6 +69,8 @@ extern i2c_t i2c_sensors;
 extern uart_t uart;
 extern sd_card_t sd_card;
 extern LSM6DS3_t acc_sensor;
+extern LPS25H press_sensor;
+extern VoltageMeasure vMes;
 
 ESP_EVENT_DECLARE_BASE(TASK_EVENTS);
 bool event_loop_init(void);
