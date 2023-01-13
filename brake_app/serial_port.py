@@ -36,7 +36,7 @@ class CLI():
 
         written_bytes = 0
         try:
-            written_bytes = self.serial.write((data + "\r\n").encode())
+            written_bytes = self.serial.write((data + "\r").encode())
             logging.debug("Written to serial:" + data)
         except Exception as exc:
             logging.error("Serial port write errror: " + str(exc))
@@ -50,6 +50,7 @@ class CLI():
 
         message = self.serial.read(1000).decode()
         for line in message.split("\n"):
+            logging.info("Serial line: " + line)
             if line.startswith("\x1b[0;32mI") and "CLI" in line:
                 logging.info("Line found:" + line)
                 return line

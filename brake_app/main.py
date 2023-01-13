@@ -1,11 +1,10 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from gui import MainWindow
-from flight_data import FlightData
-from serial_port import CLI
-
+import logging
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     app = QApplication(sys.argv)
     mw = MainWindow()
     mw.show()

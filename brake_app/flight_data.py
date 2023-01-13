@@ -22,7 +22,7 @@ class FlightData:
     #     prepared_df["data_interval"] = next_data_interval
     #     return prepared_df
 
-    def getPreparedLine(self):
+    def getPreparedLine(self) -> str | None:
         if self.prepared_df is None:
             return None
         if self.prepared_df_pos >= len(self.prepared_df):
@@ -30,7 +30,7 @@ class FlightData:
 
         line = self.prepared_df.iloc[[self.prepared_df_pos]]
         self.prepared_df_pos += 1
-        return line
+        return line.to_string(index = False, header=False)
 
 
     def getPreparedDataLength(self):
@@ -63,3 +63,4 @@ class FlightData:
 if __name__ == "__main__":
    fd = FlightData()
    fd.load_data(path="data.txt")
+   print(fd.getPreparedLine())

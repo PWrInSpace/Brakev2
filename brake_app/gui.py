@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QPushButton
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtWidgets import QComboBox
 from PyQt6.QtWidgets import QProgressBar
+from PyQt6.QtGui import QCloseEvent
 from serial_port import CLI
 from flight_data import FlightData
 import threading
@@ -19,6 +20,7 @@ class MainWindow(QWidget):
         self.initializeUI()
         self.cli = CLI()
         self.flight_data = FlightData()
+        self.test_data_timer = None
 
     def initializeUI(self):
         self.setWindowTitle("Brejk")
@@ -136,19 +138,20 @@ class MainWindow(QWidget):
 
     def testModeCmdButtonClicked(self):
         ret = self.cli.send_command("test-mode")
-        # if "GIT" in ret:
-        time.sleep(0.5)
-        self.updateLog("Test mode turned on")
-        self.button_test.setDisabled(False)
+        if "CLI" in ret:
+            time.sleep(0.5)
+            self.updateLog("Test mode turned on")
+            self.button_test.setDisabled(False)
 
     def testModeCallback(self):
         data = self.flight_data.getPreparedLine()
         pos = self.flight_data.getPreapredDataPosition()
         data_len = self.flight_data.getPreparedDataLength()
-        print(data)
+        self.cli.write(data)
         self.progress.setValue(pos)
         if pos < data_len:
-            threading.Timer(0.01, self.testModeCallback).start()
+            self.test_data_timer = threading.Timer(0.01, self.testModeCallback)
+            self.test_data_timer.start()
         else:
             self.button_test.setEnabled(True)
 
@@ -166,3 +169,10 @@ class MainWindow(QWidget):
             self.path_to_file.clear()
             self.path_to_file.insert(fname[0])
             self.load_button.setEnabled(True)
+
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        if self.test_data_timer:
+            self.test_data_timer.cancel()
+
+        self.cli.send_command("exit")
+        return super().closeEvent(a0)
