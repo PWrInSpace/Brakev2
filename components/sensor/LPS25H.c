@@ -86,10 +86,11 @@ LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal) {
   return res == LPS25H_OK ? LPS25H_OK : LPS25H_ReadError;
 }
 
-LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height, float *press){
+LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height,
+                                        float *press) {
   LPS25HResult res = LPS25H_OK;
   res |= LPS25HReadPressure(lps, press);
-  if(res != LPS25H_OK){
+  if (res != LPS25H_OK) {
     *height = 0;
     return LPS25H_ReadError;
   }

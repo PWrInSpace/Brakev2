@@ -3,11 +3,11 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "driver/i2c.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include <math.h>
 
 #define LPS_TAG "LPS25H"
 /*!
