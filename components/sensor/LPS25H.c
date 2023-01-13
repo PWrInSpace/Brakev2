@@ -48,6 +48,7 @@ LPS25HResult LPS25HStdConf(LPS25H *lps) {
 
 LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal) {
   if (!lps->fifoConfigured) {
+    ESP_LOGE(LPS_TAG, "Sensor fifo mode not configured!");
     return LPS25H_ConfigError;
   }
 
@@ -70,6 +71,7 @@ LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal) {
 
 LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal) {
   if (!lps->fifoConfigured) {
+    ESP_LOGE(LPS_TAG, "Sensor fifo mode not configured!");
     return LPS25H_ConfigError;
   }
 

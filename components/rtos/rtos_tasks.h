@@ -70,6 +70,7 @@ extern uart_t uart;
 extern sd_card_t sd_card;
 extern LSM6DS3_t acc_sensor;
 extern LPS25H press_sensor;
+extern VoltageMeasure vMes;
 
 ESP_EVENT_DECLARE_BASE(TASK_EVENTS);
 bool event_loop_init(void);
