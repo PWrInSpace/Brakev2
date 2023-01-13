@@ -1,3 +1,5 @@
+// Copyright 2023 PWr in Space
+
 #include "watchdog.h"
 
 static struct m_watchdog {

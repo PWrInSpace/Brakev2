@@ -1,3 +1,4 @@
+// Copyright 2023 PWr in Space
 #pragma once
 
 #include <stdbool.h>
@@ -13,7 +14,7 @@
 
 #ifndef WATCHDOG_MAX_TASKS
 #warning \
-    "To define the max amount of tasks the watchdog should track, define the WATCHDOG_MAX_TASKS macro"
+    "Watchdog max tasks undefined"
 #endif
 
 typedef void (*watchdog_callback_t)(TaskHandle_t);
