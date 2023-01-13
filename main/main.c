@@ -6,7 +6,6 @@
 
 #define TAG "MAIN"
 
-static watchdog_callback_t watchdogHandle;
 
 void app_main(void) {
     ESP_LOGI(TAG, "CREATING INIT TASK");
@@ -14,6 +13,6 @@ void app_main(void) {
         ESP_LOGE(TAG, "UNABLE TO CREATE INIT TASK");
     }
     ESP_LOGI(TAG, "CREATING WATCHDOG TASK");
-    watchdog_init(100, 8000, TASK_PRIORITY_HIGH, watchdogHandle);
+    
     vTaskDelete(NULL);
 }
