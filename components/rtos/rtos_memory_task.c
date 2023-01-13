@@ -41,31 +41,27 @@ static bool can_save_data_to_flash(DATA_SAVE_OPTIONS option) {
 }
 
 void memory_task(void *arg) {
-    // char data_string[512];
-    // data_to_memory_task_t data_to_save;
-    // char file_path[sizeof(FILE_NAME) + 6] = FILE_NAME;
+    char data_string[512];
+    data_to_memory_task_t data_to_save;
+    char file_path[sizeof(FILE_NAME) + 6] = FILE_NAME;
 
-    // if (create_path_to_file(file_path, sizeof(file_path)) == false) {
-    //     ESP_LOGW(TAG, "CAN'T CREATE FILE PATH, USING -> %s", file_path);
-    // }
-    // ESP_LOGI(TAG, "Using file path %s", file_path);
+    if (create_path_to_file(file_path, sizeof(file_path)) == false) {
+        ESP_LOGW(TAG, "CAN'T CREATE FILE PATH, USING -> %s", file_path);
+    }
+    ESP_LOGI(TAG, "Using file path %s", file_path);
 
-
-    // while (1) {
-    //     if (xQueueReceive(rtos.data_to_memory, (void*) &data_to_save, portMAX_DELAY) == pdTRUE) {
-    //         if (can_save_data_to_sd(data_to_save.save_option) == true) {
-    //             snprintf(data_string, sizeof(data_string), "Test;%d;%ld",
-    //                     data_to_save.data.state, data_to_save.data.up_time);
-    //             SD_write(&sd_card, file_path, data_string, sizeof(data_string));
-    //         }
-
-    //         if (can_save_data_to_flash(data_to_save.save_option) == true) {
-    //             ESP_LOGD(TAG, "SAVING TO FLASH");
-    //         }
-    //     }
-    // }
 
     while (1) {
-        vTaskDelay(10000);
+        if (xQueueReceive(rtos.data_to_memory, (void*) &data_to_save, portMAX_DELAY) == pdTRUE) {
+            if (can_save_data_to_sd(data_to_save.save_option) == true) {
+                snprintf(data_string, sizeof(data_string), "Test;%d;%ld",
+                        data_to_save.data.state, data_to_save.data.up_time);
+                SD_write(&sd_card, file_path, data_string, sizeof(data_string));
+            }
+
+            if (can_save_data_to_flash(data_to_save.save_option) == true) {
+                ESP_LOGD(TAG, "SAVING TO FLASH");
+            }
+        }
     }
 }
