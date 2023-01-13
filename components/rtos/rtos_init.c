@@ -95,10 +95,10 @@ void init_task(void *arg) {
     SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
-    
+
     NVS_init();
     SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
-    
+
     LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
     LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
