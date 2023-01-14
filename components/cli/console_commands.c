@@ -60,6 +60,7 @@ int CLI_recov_move(int argc, char **argv) {
 
     ESP_LOGI(TAG, "Recovery servo -> angle %d", angle);
     return 0;
+}
 
 int CLI_turn_on_test_mode(int argc, char **argv) {
     if (NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_ON) == NVS_OK) {
