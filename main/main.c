@@ -1,7 +1,6 @@
 // Copyright 2022 PWrInSpace
 
 #include "rtos_tasks.h"
-#include "watchdog.h"
 #include "esp_log.h"
 
 #define TAG "MAIN"

@@ -6,6 +6,7 @@
 #include "esp_log.h"
 #include "rtos_tasks.h"
 #include "state_machine.h"
+#include "watchdog.h"
 
 #define TAG "INIT"
 
@@ -20,9 +21,7 @@ LSM6DS3_t acc_sensor;
 LPS25H press_sensor;
 VoltageMeasure vMes;
 
-static watchdog_callback_t watchdogHandle;
-
-static void* wh(TaskHandle_t han){
+static void wh(TaskHandle_t han){
     //esp reset :D
 }
 
@@ -114,7 +113,7 @@ void init_task(void *arg) {
   LPS25HStdConf(&press_sensor);
   voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
 
-  watchdog_init(100, 8000, TASK_PRIORITY_HIGH, watchdogHandle);
+  watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
 
   event_loop_init();
   event_loop_register();
