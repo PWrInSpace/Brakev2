@@ -9,6 +9,8 @@
 #include "esp_event.h"
 #include "esp_event_base.h"
 
+#include "config.h"
+#include "timers_callbacks.h"
 #include "spi.h"
 #include "i2c.h"
 #include "uart.h"
@@ -17,6 +19,8 @@
 #include "voltageMeasure.h"
 #include "sdcard.h"
 #include "flash_nvs.h"
+#include "buzzer.h"
+#include "igniter.h"
 
 // NVS KEYS
 #define NVS_TEST_MODE "TEST_MODE"
