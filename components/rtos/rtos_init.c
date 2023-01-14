@@ -6,6 +6,7 @@
 #include "state_machine.h"
 
 #include "config.h"
+#include "esp_log.h"
 
 #define TAG "INIT"
 
@@ -21,7 +22,7 @@ LPS25H press_sensor;
 VoltageMeasure vMes;
 
 esp_console_cmd_t console_commands[] = {
-    {"test", "test1234", NULL, CLI_test, NULL},
+    {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
     {"reset-dev", "Software reset", NULL, CLI_reset_device, NULL},
     {"reset-reason", "Get reset reason", NULL, CLI_reset_reason, NULL},
@@ -97,8 +98,12 @@ void init_task(void *arg) {
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
 
+
     RECOV_SERVO_init();
     BRAKE_SERVO_init();
+
+    NVS_init();
+    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
 
     LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
@@ -106,16 +111,24 @@ void init_task(void *arg) {
     LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
     LPS25HStdConf(&press_sensor);
     voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
-    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+
     event_loop_init();
     event_loop_register();
-    console_init();
-    console_register_commands(console_commands,
-        sizeof(console_commands)/sizeof(console_commands[0]));
-    rtos_init();
 
-    // UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
-    // rtos_test_mode_init();
+    uint8_t test_mode = 0;
+    NVS_read_uint8(NVS_TEST_MODE, &test_mode);
+    if (test_mode == TEST_MODE_ON) {
+        ESP_LOGI(TAG, "Running in test mode");
+        NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF);
+        UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
+        rtos_test_mode_init();
+    } else {
+        ESP_LOGI(TAG, "Running in normal mode");
+        rtos_init();
+        console_init();
+        console_register_commands(console_commands,
+            sizeof(console_commands)/sizeof(console_commands[0]));
+    }
 
     vTaskDelete(NULL);
 }

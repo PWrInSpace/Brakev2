@@ -7,13 +7,10 @@
 #include "esp_system.h"
 #include "brake_servo.h"
 #include "recovery_servo.h"
+#include "flash_nvs.h"
+#include "rtos_tasks.h"
 
 #define TAG "CLI"
-
-int CLI_test(int argc, char** argv) {
-    ESP_LOGI(TAG, "Hello test");
-    return 0;
-}
 
 int CLI_state_machine_get_state(int argc, char **argv) {
     uint8_t state = SM_get_current_state();
@@ -63,4 +60,15 @@ int CLI_recov_move(int argc, char **argv) {
 
     ESP_LOGI(TAG, "Recovery servo -> angle %d", angle);
     return 0;
+
+int CLI_turn_on_test_mode(int argc, char **argv) {
+    if (NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_ON) == NVS_OK) {
+        ESP_LOGI(TAG, "TEST MODE ON");
+        esp_restart();
+        return 0;
+    }
+
+    ESP_LOGE(TAG, "Unable to write to nvs storage, test mode aborted");
+
+    return 1;
 }
