@@ -6,11 +6,6 @@
 #include <stdint.h>
 #include "driver/gpio.h"
 
-typedef enum {
-    BUZZER_LOW = 0,
-    BUZZER_HIGH = 1,
-} BUZZER_STATE;
-
 bool BUZZER_init(uint8_t pin);
 bool BUZZER_set_level(uint32_t state);
 bool BUZZER_change_level(void);
