@@ -16,6 +16,8 @@
 #include "LSM6DS3.h"
 #include "voltageMeasure.h"
 #include "sdcard.h"
+#include "brake_servo.h"
+#include "recovery_servo.h"
 
 typedef enum {
     TASK_PRIORITY_LOW = 0,

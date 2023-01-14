@@ -25,6 +25,8 @@ esp_console_cmd_t console_commands[] = {
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
     {"reset-dev", "Software reset", NULL, CLI_reset_device, NULL},
     {"reset-reason", "Get reset reason", NULL, CLI_reset_reason, NULL},
+    {"brake-servo-move", "Move brake servo", NULL, CLI_brake_move, NULL},
+    {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL}
 };
 
 
@@ -94,6 +96,9 @@ void init_task(void *arg) {
     SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
+
+    RECOV_SERVO_init();
+    BRAKE_SERVO_init();
 
     LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
