@@ -9,6 +9,8 @@
 #include "esp_event.h"
 #include "esp_event_base.h"
 
+#include "config.h"
+#include "timers_callbacks.h"
 #include "spi.h"
 #include "i2c.h"
 #include "uart.h"
@@ -16,7 +18,11 @@
 #include "LSM6DS3.h"
 #include "voltageMeasure.h"
 #include "sdcard.h"
+#include "brake_servo.h"
+#include "recovery_servo.h"
 #include "flash_nvs.h"
+#include "buzzer.h"
+#include "igniter.h"
 
 // NVS KEYS
 #define NVS_TEST_MODE "TEST_MODE"
@@ -26,6 +32,7 @@ typedef enum {
     TEST_MODE_ON = 1,
     TEST_MODE_OFF = 0,
 } TEST_MODE;
+
 
 typedef enum {
     TASK_PRIORITY_LOW = 0,
