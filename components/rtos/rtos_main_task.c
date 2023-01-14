@@ -31,10 +31,21 @@ static void update_data(void) {
 
 /********************** EVENTS ************************/
 
-static void save_data_event(void *h_args, esp_event_base_t base, int32_t id, void *data) {
-    ESP_LOGI(TAG, "EVENT HELLO WORLD!!!!!!");
-    // event triggered by timer
-    // check when last time data was saved
+static void apogee_event(void *h_arg, esp_event_base_t, int32_t id, void *data) {
+    ESP_LOGI(TAG, "NEW DATA EVENT");
+    // move recovery servo
+    TIMER_start(
+        IGNITER_TIMER,
+        RECOV_IGNITER_DELAY_MS,
+        TIMER_ONE_SHOT,
+        TIMER_CB_igniter_high,
+        NULL);
+    TIMER_start(
+        IGNITER_TIMER,
+        RECOV_IGNITER_DELAY_MS + RECOV_IGNITER_HIGH_TIME_MS,
+        TIMER_ONE_SHOT,
+        TIMER_CB_igniter_low,
+        NULL);
 }
 
 static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id, void *data) {
@@ -75,8 +86,8 @@ bool event_loop_register(void) {
     esp_err_t res = ESP_OK;
     res |= esp_event_handler_instance_register_with(event_handle,
                                                     TASK_EVENTS,
-                                                    SAVE_DATA_EVENT,
-                                                    save_data_event,
+                                                    SENSORS_APOGEE_EVENT,
+                                                    apogee_event,
                                                     NULL,
                                                     NULL);
 

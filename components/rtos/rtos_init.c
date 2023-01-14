@@ -4,7 +4,6 @@
 #include "console.h"
 #include "console_commands.h"
 #include "state_machine.h"
-
 #include "config.h"
 #include "esp_log.h"
 
@@ -98,25 +97,30 @@ void init_task(void *arg) {
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
 
+    BUZZER_init(PCB_BUZZER);
+    BUZZER_set_level(1);
+    IGNITER_init(PCB_IGNITER1);
 
     RECOV_SERVO_init();
     BRAKE_SERVO_init();
 
     NVS_init();
+    uint8_t test_mode = 0;
+    NVS_read_uint8(NVS_TEST_MODE, &test_mode);
     SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
 
-    LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-    LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
-    LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
-    LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
-    LPS25HStdConf(&press_sensor);
+    if (test_mode == TEST_MODE_OFF) {
+        LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
+        LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
+        LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
+        LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
+        LPS25HStdConf(&press_sensor);
+    }
     voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
 
     event_loop_init();
     event_loop_register();
 
-    uint8_t test_mode = 0;
-    NVS_read_uint8(NVS_TEST_MODE, &test_mode);
     if (test_mode == TEST_MODE_ON) {
         ESP_LOGI(TAG, "Running in test mode");
         NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF);
@@ -129,6 +133,9 @@ void init_task(void *arg) {
         console_register_commands(console_commands,
             sizeof(console_commands)/sizeof(console_commands[0]));
     }
+
+    BUZZER_set_level(0);
+    TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
 
     vTaskDelete(NULL);
 }
