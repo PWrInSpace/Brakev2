@@ -25,6 +25,7 @@ VoltageMeasure vMes;
 static void wh(TaskHandle_t han) {
   if (han == rtos.sensor_task) {
     ESP_LOGE(WTAG, "Sensor task malfunction");
+
   } else if (han == rtos.main_task) {
     ESP_LOGE(WTAG, "Main task malfunction");
   } else if (han == rtos.memory_task) {
