@@ -4,10 +4,8 @@
 #include "console.h"
 #include "console_commands.h"
 #include "state_machine.h"
-#include "config.h"
 #include "esp_log.h"
 #include "rtos_tasks.h"
-#include "state_machine.h"
 #include "watchdog.h"
 
 #define TAG "INIT"
