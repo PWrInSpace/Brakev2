@@ -9,6 +9,7 @@
 #include "watchdog.h"
 
 #define TAG "INIT"
+#define WTAG "WATCHDOG"
 
 #define BATT_ADC_CAL 3.3f
 
@@ -21,8 +22,18 @@ LSM6DS3_t acc_sensor;
 LPS25H press_sensor;
 VoltageMeasure vMes;
 
-static void wh(TaskHandle_t han){
-    //esp reset :D
+static void wh(TaskHandle_t han) {
+  if (han == rtos.sensor_task) {
+    ESP_LOGE(WTAG, "Sensor task malfunction");
+  } else if (han == rtos.main_task) {
+    ESP_LOGE(WTAG, "Main task malfunction");
+  } else if (han == rtos.memory_task) {
+    ESP_LOGE(WTAG, "Memory task malfunction");
+  } else if (han == rtos.test_mode_task) {
+    ESP_LOGE(WTAG, "Test mode task malfunction");
+  } else {
+    ESP_LOGE(WTAG, "Watchdog handle raised without proper task handle");
+  }
 }
 
 esp_console_cmd_t console_commands[] = {
@@ -114,7 +125,6 @@ void init_task(void *arg) {
   voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
 
   watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
-
   event_loop_init();
   event_loop_register();
 
@@ -125,6 +135,9 @@ void init_task(void *arg) {
     NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF);
     UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
     rtos_test_mode_init();
+
+    // Append task to watchdog
+    watchdog_append(rtos.test_mode_task);
   } else {
     ESP_LOGI(TAG, "Running in normal mode");
     rtos_init();
@@ -132,7 +145,12 @@ void init_task(void *arg) {
     console_register_commands(
         console_commands,
         sizeof(console_commands) / sizeof(console_commands[0]));
+
+    // Append tasks to watchdog
+    watchdog_append(rtos.sensor_task);
   }
+  watchdog_append(rtos.main_task);
+  watchdog_append(rtos.memory_task);
 
   vTaskDelete(NULL);
 }
