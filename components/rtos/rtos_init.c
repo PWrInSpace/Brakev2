@@ -1,13 +1,15 @@
 // Copyright 2022 PWrInSpace, Kuba
 
-#include "rtos_tasks.h"
+#include "config.h"
 #include "console.h"
 #include "console_commands.h"
 #include "state_machine.h"
-#include "config.h"
 #include "esp_log.h"
+#include "rtos_tasks.h"
+#include "watchdog.h"
 
 #define TAG "INIT"
+#define WTAG "WATCHDOG"
 
 #define BATT_ADC_CAL 3.3f
 
@@ -20,6 +22,21 @@ LSM6DS3_t acc_sensor;
 LPS25H press_sensor;
 VoltageMeasure vMes;
 
+static void wh(TaskHandle_t han) {
+  if (han == rtos.sensor_task) {
+    ESP_LOGE(WTAG, "Sensor task malfunction");
+
+  } else if (han == rtos.main_task) {
+    ESP_LOGE(WTAG, "Main task malfunction");
+  } else if (han == rtos.memory_task) {
+    ESP_LOGE(WTAG, "Memory task malfunction");
+  } else if (han == rtos.test_mode_task) {
+    ESP_LOGE(WTAG, "Test mode task malfunction");
+  } else {
+    ESP_LOGE(WTAG, "Watchdog handle raised without proper task handle");
+  }
+}
+
 esp_console_cmd_t console_commands[] = {
     {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
@@ -29,66 +46,69 @@ esp_console_cmd_t console_commands[] = {
     {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL}
 };
 
-
 bool rtos_init(void) {
-    rtos.data_to_memory = xQueueCreate(20, sizeof(data_to_memory_task_t));
+  rtos.data_to_memory = xQueueCreate(20, sizeof(data_to_memory_task_t));
 
-    if (rtos.data_to_memory == NULL) {
-        return false;
-    }
+  if (rtos.data_to_memory == NULL) {
+    return false;
+  }
 
-    xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
-                            TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
-    xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
-                            TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
-    xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-                            TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
+                          TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
+                          TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
+                          TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
 
-    if (rtos.sensor_task == NULL || rtos.main_task == NULL || rtos.memory_task == NULL) {
-        return false;
-    }
+  if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
+      rtos.memory_task == NULL) {
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
 bool rtos_test_mode_init(void) {
-    rtos.data_to_memory = xQueueCreate(20, sizeof(data_to_memory_task_t));
+  rtos.data_to_memory = xQueueCreate(20, sizeof(data_to_memory_task_t));
 
-    if (rtos.data_to_memory == NULL) {
-        return false;
-    }
-
-    xTaskCreatePinnedToCore(test_mode_task, "sensor_task", 8000, NULL,
-                            TASK_PRIORITY_HIGH, &rtos.sensor_task, APP_CPU_NUM);
-    xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
-                            TASK_PRIORITY_HIGH, &rtos.main_task, APP_CPU_NUM);
-    xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-                            TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
-
-    if (rtos.sensor_task == NULL || rtos.main_task == NULL || rtos.memory_task == NULL) {
-        return false;
-    }
-
-    return true;
-}
-
-static bool i2c_num1_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len) {
-    if (i2c_master_write_read_device(I2C_NUM_1, dev_addr, &reg_addr, 1, data, len,
-                                     pdMS_TO_TICKS(100)) == ESP_OK) {
-        return true;
-    }
-
+  if (rtos.data_to_memory == NULL) {
     return false;
+  }
+
+  xTaskCreatePinnedToCore(test_mode_task, "sensor_task", 8000, NULL,
+                          TASK_PRIORITY_HIGH, &rtos.sensor_task, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
+                          TASK_PRIORITY_HIGH, &rtos.main_task, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
+                          TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
+
+  if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
+      rtos.memory_task == NULL) {
+    return false;
+  }
+
+  return true;
 }
 
-static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len) {
-    uint8_t tmp[2] = {reg_addr, data[0]};
-    if (i2c_master_write_to_device(I2C_NUM_1, dev_addr, tmp, sizeof(tmp),
+static bool i2c_num1_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
+                          size_t len) {
+  if (i2c_master_write_read_device(I2C_NUM_1, dev_addr, &reg_addr, 1, data, len,
                                    pdMS_TO_TICKS(100)) == ESP_OK) {
-        return true;
-    }
+    return true;
+  }
 
-    return false;
+  return false;
+}
+
+static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
+                           size_t len) {
+  uint8_t tmp[2] = {reg_addr, data[0]};
+  if (i2c_master_write_to_device(I2C_NUM_1, dev_addr, tmp, sizeof(tmp),
+                                 pdMS_TO_TICKS(100)) == ESP_OK) {
+    return true;
+  }
+
+  return false;
 }
 
 void init_task(void *arg) {
@@ -117,7 +137,7 @@ void init_task(void *arg) {
         LPS25HStdConf(&press_sensor);
     }
     voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
-
+    watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
     event_loop_init();
     event_loop_register();
 
@@ -139,4 +159,3 @@ void init_task(void *arg) {
 
     vTaskDelete(NULL);
 }
-
