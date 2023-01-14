@@ -25,6 +25,8 @@ esp_console_cmd_t console_commands[] = {
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
     {"reset-dev", "Software reset", NULL, CLI_reset_device, NULL},
     {"reset-reason", "Get reset reason", NULL, CLI_reset_reason, NULL},
+    {"brake-servo-move", "Move brake servo", NULL, CLI_brake_move, NULL},
+    {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL}
 };
 
 
@@ -98,6 +100,9 @@ void init_task(void *arg) {
     BUZZER_init(PCB_BUZZER);
     BUZZER_set_level(1);
     IGNITER_init(PCB_IGNITER1);
+
+    RECOV_SERVO_init();
+    BRAKE_SERVO_init();
 
     NVS_init();
     uint8_t test_mode = 0;
