@@ -23,6 +23,7 @@
 #include "flash_nvs.h"
 #include "buzzer.h"
 #include "igniter.h"
+#include "alpha_beta_filter.h"
 
 // NVS KEYS
 #define NVS_TEST_MODE "TEST_MODE"

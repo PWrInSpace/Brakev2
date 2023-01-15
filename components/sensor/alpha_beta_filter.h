@@ -1,12 +1,18 @@
+// Copyright PWr in Space 2023, Krzysztof Gliwiński
 #pragma once
-
 #include <stdbool.h>
+#include "esp_log.h"
+
+#define ABTAG "Alpha-Beta filter"
 
 typedef struct {
   float alpha;
   float beta;
-  float prevVal;
   float prevTime;
+  float xk_1;
+  float xk;
+  float vk_1;
+  float vk;
 } alphaBetaValues;
 
 /*!
@@ -19,6 +25,7 @@ bool alphaBetaInit(alphaBetaValues* abv, float alpha, float beta);
 /*!
     \brief Alpha-beta filter. Counts the derivative by itself.
     \param curVal - current value
+    \param curTime - current times
     \returns Value after filtering
 */
-float alphaBetaFilter(float curVal);
+float alphaBetaFilter(alphaBetaValues *abv, float curVal, float curTime);
