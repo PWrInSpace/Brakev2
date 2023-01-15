@@ -53,6 +53,10 @@ static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id, vo
     // get data
     // update data
     update_data();
+
+    // Filters
+    
+
     if (main_data.state < 6) {
         data_to_memory_task_t data_to_memory = create_data_to_memory_struct();
         if (xQueueSend(rtos.data_to_memory, (void*) &data_to_memory, 0) == pdFALSE) {
