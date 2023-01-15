@@ -5,17 +5,6 @@
 
 #include <stdint.h>
 
-
-// typedef enum {
-//   SM_ZERO = 0,  // DO NOT USE
-//   LAUNCHPAD,
-//   FLIGHT,
-//   AIR_BRAKE_ON,
-//   APOGEE_CONFIRMED,
-//   ON_GROUND,
-//   SM_MAX  // DO NOT USE
-// } States;
-
 typedef enum {
   SM_OK,
   SM_STATES_ERROR,

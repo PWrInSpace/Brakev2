@@ -45,8 +45,6 @@ int UART_read(uart_t *uart, char *buffer, size_t buffer_size, TickType_t wait) {
 
     return length;
 }
-#define TAG "UART DUPA"
-#include "esp_log.h"
 
 int UART_read_until(uart_t *uart, char *buffer, size_t buffer_size,
                     char sign, TickType_t timeout) {

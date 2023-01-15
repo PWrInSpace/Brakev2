@@ -73,3 +73,19 @@ int CLI_turn_on_test_mode(int argc, char **argv) {
 
     return 1;
 }
+
+int CLI_change_state(int argc, char **argv) {
+    if (argc != 2) {
+        ESP_LOGW(TAG, "Invalid number of arguments");
+        return 1;
+    }
+
+    int state = atoi(argv[1]);
+    if (SM_change_state(state) != SM_OK) {
+        ESP_LOGE(TAG, "Unable to change state");
+        return 1;
+    }
+
+    ESP_LOGI(TAG, "New state %d", state);
+    return 0;
+}

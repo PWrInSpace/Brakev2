@@ -3,10 +3,8 @@
 #include "config.h"
 #include "console.h"
 #include "console_commands.h"
-#include "state_machine.h"
 #include "esp_log.h"
 #include "rtos_tasks.h"
-#include "watchdog.h"
 
 #define TAG "INIT"
 #define WTAG "WATCHDOG"
@@ -40,10 +38,19 @@ static void wh(TaskHandle_t han) {
 esp_console_cmd_t console_commands[] = {
     {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
+    {"sm-change-state", "sm_change_state", NULL, CLI_change_state, NULL},
     {"reset-dev", "Software reset", NULL, CLI_reset_device, NULL},
     {"reset-reason", "Get reset reason", NULL, CLI_reset_reason, NULL},
     {"brake-servo-move", "Move brake servo", NULL, CLI_brake_move, NULL},
-    {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL}
+    {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL},
+};
+
+state_config_t states_config[] = {
+    {LAUNCHPAD, NULL, NULL},
+    {ASCENT, SM_ascent_cb, NULL},
+    {BRAKE, SM_brake_cb, NULL},
+    {DESCENT, SM_descent_cb, NULL},
+    {GROUND, SM_ground_cb, NULL}
 };
 
 bool rtos_init(void) {
@@ -53,12 +60,12 @@ bool rtos_init(void) {
     return false;
   }
 
-  xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
-                          TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
+  // xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
+  //                         TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
                           TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-                          TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
+  // xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
+  //                         TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
 
   if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
       rtos.memory_task == NULL) {
@@ -116,6 +123,8 @@ void init_task(void *arg) {
     SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
+    SM_set_states(states_config, sizeof(states_config) / sizeof(states_config[0]));
+    SM_run();
 
     BUZZER_init(PCB_BUZZER);
     BUZZER_set_level(1);
@@ -127,15 +136,15 @@ void init_task(void *arg) {
     NVS_init();
     uint8_t test_mode = 0;
     NVS_read_uint8(NVS_TEST_MODE, &test_mode);
-    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+    // SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
 
-    if (test_mode == TEST_MODE_OFF) {
-        LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-        LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
-        LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
-        LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
-        LPS25HStdConf(&press_sensor);
-    }
+    // if (test_mode == TEST_MODE_OFF) {
+    //     LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
+    //     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
+    //     LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
+    //     LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
+    //     LPS25HStdConf(&press_sensor);
+    // }
     voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
     watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
     event_loop_init();
