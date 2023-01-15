@@ -1,4 +1,5 @@
 // Copyright 2022 PWrInSpace, Kuba
+#include <string.h>
 #include "lock.h"
 
 #define LOCK_NULL_NB 0xFF
