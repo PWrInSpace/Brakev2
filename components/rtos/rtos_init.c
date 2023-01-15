@@ -60,12 +60,12 @@ bool rtos_init(void) {
     return false;
   }
 
-  // xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
-  //                         TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
+                          TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
                           TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
-  // xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-  //                         TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
+                          TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
 
   if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
       rtos.memory_task == NULL) {
@@ -136,15 +136,15 @@ void init_task(void *arg) {
     NVS_init();
     uint8_t test_mode = 0;
     NVS_read_uint8(NVS_TEST_MODE, &test_mode);
-    // SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
 
-    // if (test_mode == TEST_MODE_OFF) {
-    //     LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-    //     LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
-    //     LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
-    //     LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
-    //     LPS25HStdConf(&press_sensor);
-    // }
+    if (test_mode == TEST_MODE_OFF) {
+        LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
+        LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
+        LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
+        LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
+        LPS25HStdConf(&press_sensor);
+    }
     voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
     watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
     event_loop_init();
