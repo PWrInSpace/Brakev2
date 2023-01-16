@@ -66,6 +66,6 @@ void sensor_task(void *arg) {
 
     esp_event_post_to(event_get_handle(), TASK_EVENTS, SENSORS_NEW_DATA_EVENT,
                       (void *)&brake_sensors, sizeof(sensors_t), portMAX_DELAY);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
