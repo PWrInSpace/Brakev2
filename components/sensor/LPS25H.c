@@ -36,7 +36,7 @@ LPS25HResult LPS25HStdConf(LPS25H *lps) {
   res |= LPS25HRegisterWriteByte(lps, LPS25H_REG_RES_CONF, 0x05);
   res |= LPS25HRegisterWriteByte(lps, LPS25H_REG_FIFO_CTRL, 0xDF);
   res |= LPS25HRegisterWriteByte(lps, LPS25H_REG_CTRL_REG2, 0x40);
-  res |= LPS25HRegisterWriteByte(lps, LPS25H_REG_CTRL_REG1, 0xA0);
+  res |= LPS25HRegisterWriteByte(lps, LPS25H_REG_CTRL_REG1, 0xC0);
   if (res == LPS25H_OK) {
     lps->fifoConfigured = true;
     ESP_LOGI(LPS_TAG, "Sensor fifo mode configured (data rate 7Hz)");
