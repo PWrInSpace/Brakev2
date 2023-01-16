@@ -164,7 +164,7 @@ void init_task(void *arg) {
     }
 
     BUZZER_set_level(0);
-    TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
+    // TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
 
     vTaskDelete(NULL);
 }

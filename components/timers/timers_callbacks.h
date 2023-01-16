@@ -10,5 +10,7 @@ void TIMER_CB_brake_close(void *arg);
 void TIMER_CB_igniter_high(void *arg);
 void TIMER_CB_igniter_low(void *arg);
 void TIMER_CB_buzzer_change(void *arg);
+void TIMER_CB_buzzer_high(void *arg);
+void TIMER_CB_buzzer_low(void *arg);
 
 #endif
