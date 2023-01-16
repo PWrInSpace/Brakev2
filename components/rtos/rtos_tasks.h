@@ -23,6 +23,8 @@
 #include "timers_callbacks.h"
 #include "uart.h"
 #include "voltageMeasure.h"
+#include "sm_brake.h"
+#include "watchdog.h"
 
 // NVS KEYS
 #define NVS_TEST_MODE "TEST_MODE"

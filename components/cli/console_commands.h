@@ -10,7 +10,7 @@ int CLI_reset_reason(int argc, char **argv);
 int CLI_brake_move(int argc, char **argv);
 int CLI_recov_move(int argc, char **argv);
 int CLI_turn_on_test_mode(int argc, char** argv);
-
+int CLI_change_state(int argc, char **argv);
 
 
 #endif

@@ -1,3 +1,3 @@
-idf_component_register(SRCS "flash_nvs.c" "flash.c"
+idf_component_register(SRC_DIRS "."
                     INCLUDE_DIRS "."
-                    REQUIRES cmock memory spi_flash spiffs nvs_flash)
+                    REQUIRES cmock memory spi_flash spiffs nvs_flash sys)

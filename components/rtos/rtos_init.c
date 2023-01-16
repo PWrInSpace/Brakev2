@@ -3,10 +3,8 @@
 #include "config.h"
 #include "console.h"
 #include "console_commands.h"
-#include "state_machine.h"
 #include "esp_log.h"
 #include "rtos_tasks.h"
-#include "watchdog.h"
 
 #define TAG "INIT"
 #define WTAG "WATCHDOG"
@@ -40,10 +38,19 @@ static void wh(TaskHandle_t han) {
 esp_console_cmd_t console_commands[] = {
     {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
+    {"sm-change-state", "sm_change_state", NULL, CLI_change_state, NULL},
     {"reset-dev", "Software reset", NULL, CLI_reset_device, NULL},
     {"reset-reason", "Get reset reason", NULL, CLI_reset_reason, NULL},
     {"brake-servo-move", "Move brake servo", NULL, CLI_brake_move, NULL},
-    {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL}
+    {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL},
+};
+
+state_config_t states_config[] = {
+    {LAUNCHPAD, NULL, NULL},
+    {ASCENT, SM_ascent_cb, NULL},
+    {BRAKE, SM_brake_cb, NULL},
+    {DESCENT, SM_descent_cb, NULL},
+    {GROUND, SM_ground_cb, NULL}
 };
 
 bool rtos_init(void) {
@@ -116,6 +123,8 @@ void init_task(void *arg) {
     SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
     I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
     SM_init();
+    SM_set_states(states_config, sizeof(states_config) / sizeof(states_config[0]));
+    SM_run();
 
     BUZZER_init(PCB_BUZZER);
     BUZZER_set_level(1);

@@ -97,9 +97,8 @@ esp_event_loop_handle_t event_get_handle(void) { return event_handle; }
 
 /********************** MAIN TASK ************************/
 void main_task(void *arg) {
-  while (1) {
-    ESP_LOGI(TAG, "application_task: running application task");
-    esp_event_loop_run(event_handle, 1000);
-    vTaskDelay(1 / portTICK_PERIOD_MS);
-  }
+    while (1) {
+        esp_event_loop_run(event_handle, 1000);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
 }
