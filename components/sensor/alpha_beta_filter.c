@@ -1,3 +1,4 @@
+// Copyright 2023 PWr in Space, Krzysztof Gliwiński
 #include "alpha_beta_filter.h"
 
 bool alphaBetaInit(alphaBetaValues* abv, float alpha, float beta) {

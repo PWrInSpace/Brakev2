@@ -3,82 +3,85 @@
 #ifndef ROTS_TASK_H
 #define RTOS_TASK_H
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
-#include "esp_event.h"
-#include "esp_event_base.h"
-
-#include "config.h"
-#include "timers_callbacks.h"
-#include "spi.h"
-#include "i2c.h"
-#include "uart.h"
 #include "LPS25H.h"
 #include "LSM6DS3.h"
-#include "voltageMeasure.h"
-#include "sdcard.h"
-#include "brake_servo.h"
-#include "recovery_servo.h"
-#include "flash_nvs.h"
-#include "buzzer.h"
-#include "igniter.h"
 #include "alpha_beta_filter.h"
+#include "brake_servo.h"
+#include "buzzer.h"
+#include "config.h"
+#include "esp_event.h"
+#include "esp_event_base.h"
+#include "esp_log.h"
+#include "flash_nvs.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "i2c.h"
+#include "igniter.h"
+#include "recovery_servo.h"
+#include "sdcard.h"
+#include "spi.h"
+#include "timers_callbacks.h"
+#include "uart.h"
+#include "voltageMeasure.h"
 
 // NVS KEYS
 #define NVS_TEST_MODE "TEST_MODE"
 
-
 typedef enum {
-    TEST_MODE_ON = 1,
-    TEST_MODE_OFF = 0,
+  TEST_MODE_ON = 1,
+  TEST_MODE_OFF = 0,
 } TEST_MODE;
 
-
 typedef enum {
-    TASK_PRIORITY_LOW = 0,
-    TASK_PRIORITY_MID = 5,
-    TASK_PRIORITY_HIGH = 10,
+  TASK_PRIORITY_LOW = 0,
+  TASK_PRIORITY_MID = 5,
+  TASK_PRIORITY_HIGH = 10,
 } TASKS_PRIORITY;
 
 typedef enum {
-    SAVE_DATA_EVENT,
-    SENSORS_NEW_DATA_EVENT,
-    SENSORS_HIGH_ACC_EVENT,
-    SENSORS_APOGEE_EVENT,
+  SAVE_DATA_EVENT,
+  SENSORS_NEW_DATA_EVENT,
+  SENSORS_HIGH_ACC_EVENT,
+  SENSORS_APOGEE_EVENT,
 } EVENTS;
 
 typedef enum {
-    SAVE_TO_SD,
-    SAVE_TO_FLASH,
-    SAVE_TO_BOTH,
+  SAVE_TO_SD,
+  SAVE_TO_FLASH,
+  SAVE_TO_BOTH,
 } DATA_SAVE_OPTIONS;
 
 typedef struct {
-    TaskHandle_t sensor_task;
-    TaskHandle_t main_task;
-    TaskHandle_t memory_task;
-    TaskHandle_t test_mode_task;
-    QueueHandle_t data_to_memory;
+  TaskHandle_t sensor_task;
+  TaskHandle_t main_task;
+  TaskHandle_t memory_task;
+  TaskHandle_t test_mode_task;
+  QueueHandle_t data_to_memory;
 } rtos_t;
 
 typedef struct {
-    LSM6DS3_acc_t acc;
-    float height;
-    float pressure;
-    float temp;
-    float vBatt;
+  LSM6DS3_acc_t acc;
+  float height;
+  float pressure;
+  float temp;
+  float vBatt;
 } sensors_t;
 
 typedef struct {
-    int64_t up_time;
-    uint8_t state;
-    sensors_t sensors_data;
+  float height;
+  LSM6DS3_acc_t acc;
+} filtered_data_t;
+
+typedef struct {
+  int64_t up_time;
+  uint8_t state;
+  sensors_t sensors_data;
+  filtered_data_t filtered_data;
 } rocket_data_t;
 
 typedef struct {
-    rocket_data_t data;
-    DATA_SAVE_OPTIONS save_option;
+  rocket_data_t data;
+  DATA_SAVE_OPTIONS save_option;
 } data_to_memory_task_t;
 
 extern rtos_t rtos;

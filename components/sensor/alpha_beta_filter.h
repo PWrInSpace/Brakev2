@@ -1,6 +1,7 @@
 // Copyright PWr in Space 2023, Krzysztof Gliwiński
 #pragma once
 #include <stdbool.h>
+
 #include "esp_log.h"
 
 #define ABTAG "Alpha-Beta filter"
@@ -19,6 +20,8 @@ typedef struct {
     \brief Initiate the alpha-beta values
     \param alpha - desired balue for alpha
     \param beta - desired value for beta
+    \returns true - if the alpha beta values are in bounds,
+             false otherwise
 */
 bool alphaBetaInit(alphaBetaValues* abv, float alpha, float beta);
 
@@ -28,4 +31,4 @@ bool alphaBetaInit(alphaBetaValues* abv, float alpha, float beta);
     \param curTime - current times
     \returns Value after filtering
 */
-float alphaBetaFilter(alphaBetaValues *abv, float curVal, float curTime);
+float alphaBetaFilter(alphaBetaValues* abv, float curVal, float curTime);
