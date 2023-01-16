@@ -28,7 +28,7 @@ void watchdog_init(size_t delay, size_t watchdog_task_stack_size,
     g_watchdog.feeders[i] = 0;
   }
   xTaskCreate((void*)watchdog_background_task, 0, watchdog_task_stack_size, 0,
-              watchdog_task_priority, g_watchdog.watchdog_task_handle);
+              watchdog_task_priority, &g_watchdog.watchdog_task_handle);
 }
 void watchdog_disconnect() {
   vTaskDelete(g_watchdog.watchdog_task_handle);
@@ -42,7 +42,7 @@ void watchdog_reconnect(size_t delay, size_t watchdog_task_stack_size,
     vTaskDelete(g_watchdog.watchdog_task_handle);
   }
   xTaskCreate((void*)watchdog_background_task, 0, watchdog_task_stack_size, 0,
-              watchdog_task_priority, g_watchdog.watchdog_task_handle);
+              watchdog_task_priority, &g_watchdog.watchdog_task_handle);
 }
 
 bool watchdog_append(TaskHandle_t feeder) {

@@ -23,16 +23,16 @@
 #include "flash_nvs.h"
 #include "buzzer.h"
 #include "igniter.h"
+#include "sm_brake.h"
+#include "watchdog.h"
 
 // NVS KEYS
 #define NVS_TEST_MODE "TEST_MODE"
-
 
 typedef enum {
     TEST_MODE_ON = 1,
     TEST_MODE_OFF = 0,
 } TEST_MODE;
-
 
 typedef enum {
     TASK_PRIORITY_LOW = 0,
