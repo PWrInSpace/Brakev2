@@ -65,18 +65,16 @@ typedef struct {
   float pressure;
   float temp;
   float vBatt;
+  struct {
+    float height;
+    LSM6DS3_acc_t acc;
+  } filtered_data;
 } sensors_t;
-
-typedef struct {
-  float height;
-  LSM6DS3_acc_t acc;
-} filtered_data_t;
 
 typedef struct {
   int64_t up_time;
   uint8_t state;
   sensors_t sensors_data;
-  filtered_data_t filtered_data;
 } rocket_data_t;
 
 typedef struct {

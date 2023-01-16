@@ -9,15 +9,6 @@
 static rocket_data_t main_data;
 static esp_event_loop_handle_t event_handle;
 
-static struct {
-  alphaBetaValues height;
-  struct {
-    alphaBetaValues x;
-    alphaBetaValues y;
-    alphaBetaValues z;
-  } acc;
-} alpha_beta_filters;
-
 ESP_EVENT_DEFINE_BASE(TASK_EVENTS);
 
 static data_to_memory_task_t create_data_to_memory_struct(void) {
@@ -30,30 +21,6 @@ static data_to_memory_task_t create_data_to_memory_struct(void) {
   }
 
   return data_to_mem;
-}
-
-static bool filter_init(void) {
-  bool res = 1;
-  res &= alphaBetaInit(&alpha_beta_filters.height, 0.3, 0.05);
-  res &= alphaBetaInit(&alpha_beta_filters.acc.x, 0.3, 0.05);
-  res &= alphaBetaInit(&alpha_beta_filters.acc.y, 0.3, 0.05);
-  res &= alphaBetaInit(&alpha_beta_filters.acc.z, 0.3, 0.05);
-  return res;
-}
-
-static void filtered_update() {
-  main_data.filtered_data.height =
-      alphaBetaFilter(&alpha_beta_filters.height, main_data.sensors_data.height,
-                      main_data.up_time);
-  main_data.filtered_data.acc.x =
-      alphaBetaFilter(&alpha_beta_filters.acc.x, main_data.sensors_data.acc.x,
-                      main_data.up_time);
-  main_data.filtered_data.acc.y =
-      alphaBetaFilter(&alpha_beta_filters.acc.y, main_data.sensors_data.acc.y,
-                      main_data.up_time);
-  main_data.filtered_data.acc.z =
-      alphaBetaFilter(&alpha_beta_filters.acc.z, main_data.sensors_data.acc.z,
-                      main_data.up_time);
 }
 
 static void update_data(void) {
@@ -80,8 +47,6 @@ static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
   // get data
   // update data
   update_data();
-  // Filters
-  filtered_update();
 
   if (main_data.state < 6) {
     data_to_memory_task_t data_to_memory = create_data_to_memory_struct();
@@ -132,10 +97,6 @@ esp_event_loop_handle_t event_get_handle(void) { return event_handle; }
 
 /********************** MAIN TASK ************************/
 void main_task(void *arg) {
-  if (!filter_init()) {
-    ESP_LOGE(TAG, "Alpha-beta filters not initiated!");
-  }
-
   while (1) {
     ESP_LOGI(TAG, "application_task: running application task");
     esp_event_loop_run(event_handle, 1000);
