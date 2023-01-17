@@ -36,6 +36,11 @@ bool led_driver_init(led_driver_t *led_drv, uint8_t led_gpio_num,
 }
 
 bool led_driver_update_duty_cycle(led_driver_t *led_drv, uint16_t duty) {
+  if (duty > MAX_LED_DUTY) {
+    ESP_LOGE(LED_DRIVER_TAG, "Duty too large, expected max. %d, actual: %d",
+             MAX_LED_DUTY, duty);
+    return false;
+  }
   if (ledc_set_duty(LEDC_MODE, led_drv->ledc_channel_num, duty) != ESP_OK) {
     ESP_LOGE(LED_DRIVER_TAG, "LEDc set duty failed");
     return 0;
