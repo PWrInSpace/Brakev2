@@ -7,7 +7,7 @@
 
 #define EXIT_COMMAND "exit\r"
 
-bool check_if_exit_command(char* data) {
+static bool check_if_exit_command(char* data) {
     if (strcmp(data, EXIT_COMMAND) == 0) {
         return true;
     }

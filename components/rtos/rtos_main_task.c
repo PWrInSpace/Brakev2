@@ -49,7 +49,6 @@ static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
 
 static void apogee_event(void *h_arg, esp_event_base_t, int32_t id,
                          void *data) {
-    ESP_LOGI(TAG, "Apogee event");
     if (SM_change_state(DESCENT) != SM_OK) {
         ESP_LOGE(TAG, "Unable to change state to BRAKE");
         return;

@@ -215,21 +215,19 @@ void init_task(void *arg) {
         ESP_LOGI(TAG, "Running in test mode");
         NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF);
         UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
-        rtos_test_mode_init();
+        // rtos_test_mode_init();
     } else {
         ESP_LOGI(TAG, "Running in normal mode");
-
         LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
         LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
         LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
         LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
         LPS25HStdConf(&press_sensor);
-        rtos_init();
         console_init();
         console_register_commands(console_commands,
             sizeof(console_commands)/sizeof(console_commands[0]));
     }
-
+    rtos_init();
     BUZZER_set_level(0);
 
     if (SETI_get_settings()->buzzer_active == true) {

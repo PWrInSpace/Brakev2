@@ -57,6 +57,10 @@ void memory_task(void *arg) {
                 snprintf(data_string, sizeof(data_string), "Test;%d;%ld",
                         data_to_save.data.state, data_to_save.data.up_time);
                 SD_write(&sd_card, file_path, data_string, sizeof(data_string));
+
+                if (SETI_get_settings()->test_mode == true) {
+                    ESP_LOGI(TAG, "%d", data_string);
+                }
             }
 
             if (can_save_data_to_flash(data_to_save.save_option) == true) {

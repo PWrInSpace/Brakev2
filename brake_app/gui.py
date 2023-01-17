@@ -147,7 +147,7 @@ class MainWindow(QWidget):
         data = self.flight_data.getPreparedLine()
         pos = self.flight_data.getPreapredDataPosition()
         data_len = self.flight_data.getPreparedDataLength()
-        self.cli.write(data)
+        self.cli.send_command(data)
         self.progress.setValue(pos)
         if pos < data_len:
             self.test_data_timer = threading.Timer(0.01, self.testModeCallback)
