@@ -5,6 +5,7 @@
 #include "console_commands.h"
 #include "esp_log.h"
 #include "rtos_tasks.h"
+#include "esp_system.h"
 
 #define TAG "INIT"
 #define WTAG "WATCHDOG"
@@ -56,7 +57,7 @@ esp_console_cmd_t console_commands[] = {
     {"buzzer-active", "Buzzer active after startup", NULL, CLI_buzzer_active, NULL},
 };
 
-state_config_t states_config[] = {
+state_config_t states_conf[] = {
     {LAUNCHPAD, NULL, NULL},
     {ASCENT, NULL, NULL},
     {BRAKE, NULL, NULL},
@@ -129,19 +130,19 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
   return false;
 }
 
-static void set_keys_to_flash(void) {
-  NVS_write_uint16(NVS_BRAKE_OPEN_ANGLE, 0);
-  NVS_write_uint16(NVS_BRAKE_CLOSE_ANGLE, 0);
-  NVS_write_uint16(NVS_RECOVERY_OPEN_ANGLE, 0);
-  NVS_write_uint16(NVS_RECOVERY_CLOSE_ANGLE, 0);
-  NVS_write_uint8(NVS_ALPHA, 0);
-  NVS_write_uint8(NVS_BETA, 0);
-  NVS_write_uint8(NVS_TEST_MODE, 0);
-  NVS_write_uint8(NVS_BUZZER_ACTIVE, 0);
-    NVS_write_uint16(NVS_BRAKE_OPEN_TIME, 0);
-    NVS_write_uint16(NVS_RECOV_SAFETY_TRIG_TIME, 0);
-    NVS_write_uint16(NVS_RECOV_OPEN_TIME, 0);
-}
+// static void set_keys_to_flash(void) {
+//   NVS_write_uint16(NVS_BRAKE_OPEN_ANGLE, 0);
+//   NVS_write_uint16(NVS_BRAKE_CLOSE_ANGLE, 0);
+//   NVS_write_uint16(NVS_RECOVERY_OPEN_ANGLE, 0);
+//   NVS_write_uint16(NVS_RECOVERY_CLOSE_ANGLE, 0);
+//   NVS_write_uint8(NVS_ALPHA, 0);
+//   NVS_write_uint8(NVS_BETA, 0);
+//   NVS_write_uint8(NVS_TEST_MODE, 0);
+//   NVS_write_uint8(NVS_BUZZER_ACTIVE, 0);
+//     NVS_write_uint16(NVS_BRAKE_OPEN_TIME, 0);
+//     NVS_write_uint16(NVS_RECOV_SAFETY_TRIG_TIME, 0);
+//     NVS_write_uint16(NVS_RECOV_OPEN_TIME, 0);
+// }
 
 static bool read_settings_from_flash(void) {
     settings_t * settings = SETI_get_settings();
@@ -185,52 +186,77 @@ static bool read_settings_from_flash(void) {
     return res == NVS_OK ? true : false;
 }
 
+/**************************** ERRORS ***************************/
+
+static void err_handling(char *name) {
+    ESP_LOGE(TAG, "Init error -> %s", name);
+    BUZZER_set_level(0);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+    BUZZER_set_level(1);
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    esp_restart();
+}
+
+static inline void ERR_CHECK_BOOL(bool status, char *name) {
+  if (status == false) {
+    err_handling(name);
+  }
+}
+
+static inline void ERR_CHECK_STATUS(uint32_t status, char *name) {
+  if (status != 0) {
+    err_handling(name);
+  }
+}
 
 void init_task(void *arg) {
-    bool ret;
-    SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
-    I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL);
-    SM_init();
-    SM_set_states(states_config, sizeof(states_config) / sizeof(states_config[0]));
-    SM_run();
-
     BUZZER_init(PCB_BUZZER);
     BUZZER_set_level(1);
-    IGNITER_init(PCB_IGNITER1);
+    ERR_CHECK_BOOL(IGNITER_init(PCB_IGNITER1), "INGITER");
 
-    RECOV_SERVO_init();
-    BRAKE_SERVO_init();
+    ERR_CHECK_BOOL(SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK), "SPI");
+    ERR_CHECK_BOOL(I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL), "I2C");
+    SM_init();
+    ERR_CHECK_STATUS(SM_set_states(states_conf, sizeof(states_conf) / sizeof(states_conf[0])),
+              "State machine set state");
+    ERR_CHECK_BOOL(SM_run() == SM_OK ? true : false, "State machine run");
 
-    NVS_init();
-    // set_keys_to_flash();
-    read_settings_from_flash();
-    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+    ERR_CHECK_STATUS(NVS_init(), "NVS");
+    ERR_CHECK_BOOL(read_settings_from_flash(), "NVS read");
+    ERR_CHECK_BOOL(SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT), "SD_init");
 
-    voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
+    ERR_CHECK_STATUS(voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL), "V measure");
     watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
-    event_loop_init();
-    event_loop_register();
+    ERR_CHECK_BOOL(event_loop_init(), "event loop");
+    ERR_CHECK_BOOL(event_loop_register(), "event loop register");
 
     if (SETI_get_settings()->test_mode == TEST_MODE_ON) {
         ESP_LOGI(TAG, "Running in test mode");
-        NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF);
-        UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
-        rtos_test_mode_init();
+        ERR_CHECK_STATUS(NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF), "NVS write");
+        ERR_CHECK_BOOL(UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200), "Uart");
+        ERR_CHECK_BOOL(rtos_test_mode_init(), "RTOS init");
     } else {
         ESP_LOGI(TAG, "Running in normal mode");
 
-        LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-        LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
-        LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
-        LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
-        LPS25HStdConf(&press_sensor);
-        rtos_init();
-        console_init();
-        console_register_commands(console_commands,
-            sizeof(console_commands)/sizeof(console_commands[0]));
+        ERR_CHECK_BOOL(LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read), "LSM6DS3");
+        ERR_CHECK_BOOL(LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G), "LSM6DSA3 acc scale");
+        ERR_CHECK_BOOL(LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000),
+                        "LSM6DSA3 gyro scale");
+        ERR_CHECK_STATUS(LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H), "LPS25H");
+        ERR_CHECK_STATUS(LPS25HStdConf(&press_sensor), "LPS25HB conf");
+        ERR_CHECK_BOOL(rtos_init(), "RTOS init");
+        ERR_CHECK_BOOL(console_init(), "CLI");
+        ERR_CHECK_BOOL(console_register_commands(console_commands,
+            sizeof(console_commands)/sizeof(console_commands[0])), "CLI register");
     }
 
     BUZZER_set_level(0);
+    ERR_CHECK_BOOL(RECOV_SERVO_init(), "Recovery servo init");
+    ERR_CHECK_BOOL(BRAKE_SERVO_init(), "Brake servo init");
+    ERR_CHECK_BOOL(RECOV_SERVO_move(SETI_get_settings()->recovery_close_angle),
+                  "Recovery servo move");
+    ERR_CHECK_BOOL(BRAKE_SERVO_move(SETI_get_settings()->brake_close_angle),
+                  "Brake servo init");
 
     if (SETI_get_settings()->buzzer_active == true) {
         TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);

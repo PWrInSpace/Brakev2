@@ -40,9 +40,24 @@ static bool can_save_data_to_flash(DATA_SAVE_OPTIONS option) {
     return false;
 }
 
+static size_t create_data_csv(data_to_memory_task_t *rec, char *data_string, size_t len) {
+    return snprintf(data_string, len,
+        "Test;%d;%ld;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",
+        rec->data.state, rec->data.up_time,
+        rec->data.sensors.acc.x, rec->data.sensors.acc.y, rec->data.sensors.acc.z,
+        rec->data.sensors.gyro.x, rec->data.sensors.gyro.y, rec->data.sensors.gyro.z,
+        rec->data.sensors.height,
+        rec->data.sensors.pressure, rec->data.sensors.temp,
+        rec->data.sensors.filtered.acc.x, rec->data.sensors.filtered.acc.y,
+        rec->data.sensors.filtered.acc.z,
+        rec->data.sensors.filtered.gyro.x, rec->data.sensors.filtered.gyro.y,
+        rec->data.sensors.filtered.gyro.z, rec->data.sensors.filtered.height,
+        rec->data.sensors.vBatt);
+}
+
 void memory_task(void *arg) {
     char data_string[512];
-    data_to_memory_task_t data_to_save;
+    data_to_memory_task_t data;
     char file_path[sizeof(FILE_NAME) + 6] = FILE_NAME;
 
     if (create_path_to_file(file_path, sizeof(file_path)) == false) {
@@ -52,14 +67,13 @@ void memory_task(void *arg) {
 
 
     while (1) {
-        if (xQueueReceive(rtos.data_to_memory, (void*) &data_to_save, portMAX_DELAY) == pdTRUE) {
-            if (can_save_data_to_sd(data_to_save.save_option) == true) {
-                snprintf(data_string, sizeof(data_string), "Test;%d;%ld",
-                        data_to_save.data.state, data_to_save.data.up_time);
+        if (xQueueReceive(rtos.data_to_memory, (void*) &data, portMAX_DELAY) == pdTRUE) {
+            if (can_save_data_to_sd(data.save_option) == true) {
+                create_data_csv(&data, data_string, sizeof(data_string));
                 SD_write(&sd_card, file_path, data_string, sizeof(data_string));
             }
 
-            if (can_save_data_to_flash(data_to_save.save_option) == true) {
+            if (can_save_data_to_flash(data.save_option) == true) {
                 ESP_LOGD(TAG, "SAVING TO FLASH");
             }
         }

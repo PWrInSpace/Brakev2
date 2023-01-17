@@ -73,29 +73,29 @@ static bool acc_leds_update(void) {
 static void filtered_update() {
   float up_time = (float)get_time_ms() * 1000.f;
 
-  brake_sensors.filtered_data.height = alphaBetaFilter(
+  brake_sensors.filtered.height = alphaBetaFilter(
       &alpha_beta_filters.height, brake_sensors.height, up_time);
-  ESP_LOGI(TAG, "Filtered height: %f", brake_sensors.filtered_data.height);
-  brake_sensors.filtered_data.acc.x =
+  ESP_LOGI(TAG, "Filtered height: %f", brake_sensors.filtered.height);
+  brake_sensors.filtered.acc.x =
       alphaBetaFilter(&alpha_beta_filters.acc.x, brake_sensors.acc.x, up_time);
-  brake_sensors.filtered_data.acc.y =
+  brake_sensors.filtered.acc.y =
       alphaBetaFilter(&alpha_beta_filters.acc.y, brake_sensors.acc.y, up_time);
-  brake_sensors.filtered_data.acc.z =
+  brake_sensors.filtered.acc.z =
       alphaBetaFilter(&alpha_beta_filters.acc.z, brake_sensors.acc.z, up_time);
   ESP_LOGI(TAG, "Filtered acceleration: x: %f\t y:%f\tz:%f",
-           brake_sensors.filtered_data.acc.x, brake_sensors.filtered_data.acc.y,
-           brake_sensors.filtered_data.acc.z);
+           brake_sensors.filtered.acc.x, brake_sensors.filtered.acc.y,
+           brake_sensors.filtered.acc.z);
 
-  brake_sensors.filtered_data.gyro.x = alphaBetaFilter(
+  brake_sensors.filtered.gyro.x = alphaBetaFilter(
       &alpha_beta_filters.gyro.x, brake_sensors.gyro.x, up_time);
-  brake_sensors.filtered_data.gyro.y = alphaBetaFilter(
+  brake_sensors.filtered.gyro.y = alphaBetaFilter(
       &alpha_beta_filters.gyro.y, brake_sensors.gyro.y, up_time);
-  brake_sensors.filtered_data.gyro.z = alphaBetaFilter(
+  brake_sensors.filtered.gyro.z = alphaBetaFilter(
       &alpha_beta_filters.gyro.z, brake_sensors.gyro.z, up_time);
   ESP_LOGI(TAG, "Filtered gyro: x: %f\t y:%f\tz:%f",
-           brake_sensors.filtered_data.gyro.x,
-           brake_sensors.filtered_data.gyro.y,
-           brake_sensors.filtered_data.gyro.z);
+           brake_sensors.filtered.gyro.x,
+           brake_sensors.filtered.gyro.y,
+           brake_sensors.filtered.gyro.z);
 }
 
 void sensor_task(void *arg) {
