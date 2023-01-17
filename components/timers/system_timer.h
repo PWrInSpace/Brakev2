@@ -9,8 +9,10 @@
 
 typedef enum {
     BRAKE_TIMER = 0,
-    IGNITER_TIMER,
+    IGNITER_TIMER_ON,
+    IGNITER_TIMER_OFF,
     BUZZER_TIMER,
+    RECOV_SAFETY_TRIGGER,
 } Timers;
 
 typedef enum {

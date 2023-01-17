@@ -36,21 +36,32 @@ static void wh(TaskHandle_t han) {
 }
 
 esp_console_cmd_t console_commands[] = {
-    {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
     {"sm-state", "Get current state", NULL, CLI_state_machine_get_state, NULL},
     {"sm-change-state", "sm_change_state", NULL, CLI_change_state, NULL},
     {"reset-dev", "Software reset", NULL, CLI_reset_device, NULL},
     {"reset-reason", "Get reset reason", NULL, CLI_reset_reason, NULL},
     {"brake-servo-move", "Move brake servo", NULL, CLI_brake_move, NULL},
     {"recov-servo-move", "Move recovery servo", NULL, CLI_recov_move, NULL},
+    {"print-settings", "Print dev settings", NULL, CLI_print_settings, NULL},
+    {"test-mode", "Run dev in test-mode", NULL, CLI_turn_on_test_mode, NULL},
+    {"brake-open", "Set brake open angle", NULL, CLI_set_brake_open_angle, NULL},
+    {"brake-open-time", "Set brake open time", NULL, CLI_set_brake_open_time, NULL},
+    {"brake-close", "Set brake close angle", NULL, CLI_set_brake_close_angle, NULL},
+    {"recov-open", "Set recovery open angle", NULL, CLI_set_recovery_open_angle, NULL},
+    {"recov-close", "Set recovery close angle", NULL, CLI_set_recovery_close_angle, NULL},
+    {"recov-trigg", "Set recovery safety trigger", NULL, CLI_set_safety_trigger_time, NULL},
+    {"recov-open-time", "Set recovery open time", NULL, CLI_set_recovery_open_time, NULL},
+    {"alpha", "Set alpha", NULL, CLI_set_alpha, NULL},
+    {"beta", "Set beta", NULL, CLI_set_beta, NULL},
+    {"buzzer-active", "Buzzer active after startup", NULL, CLI_buzzer_active, NULL},
 };
 
 state_config_t states_config[] = {
     {LAUNCHPAD, NULL, NULL},
-    {ASCENT, SM_ascent_cb, NULL},
-    {BRAKE, SM_brake_cb, NULL},
-    {DESCENT, SM_descent_cb, NULL},
-    {GROUND, SM_ground_cb, NULL}
+    {ASCENT, NULL, NULL},
+    {BRAKE, NULL, NULL},
+    {DESCENT, NULL, NULL},
+    {GROUND, NULL, NULL}
 };
 
 bool rtos_init(void) {
@@ -60,12 +71,12 @@ bool rtos_init(void) {
     return false;
   }
 
-  xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
-                          TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
+  // xTaskCreatePinnedToCore(sensor_task, "sensor_task", 8000, NULL,
+  //                         TASK_PRIORITY_HIGH, &rtos.sensor_task, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(main_task, "main_task", 8000, NULL,
                           TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
-                          TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
+  // xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
+  //                         TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
 
   if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
       rtos.memory_task == NULL) {
@@ -118,6 +129,63 @@ static bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
   return false;
 }
 
+// static void set_keys_to_flash(void) {
+//   NVS_write_uint16(NVS_BRAKE_OPEN_ANGLE, 0);
+//   NVS_write_uint16(NVS_BRAKE_CLOSE_ANGLE, 0);
+//   NVS_write_uint16(NVS_RECOVERY_OPEN_ANGLE, 0);
+//   NVS_write_uint16(NVS_RECOVERY_CLOSE_ANGLE, 0);
+//   NVS_write_uint8(NVS_ALPHA, 0);
+//   NVS_write_uint8(NVS_BETA, 0);
+//   NVS_write_uint8(NVS_TEST_MODE, 0);
+//   NVS_write_uint8(NVS_BUZZER_ACTIVE, 0);
+//     NVS_write_uint16(NVS_BRAKE_OPEN_TIME, 0);
+//     NVS_write_uint16(NVS_RECOV_SAFETY_TRIG_TIME, 0);
+//     NVS_write_uint16(NVS_RECOV_OPEN_TIME, 0);
+// }
+
+static bool read_settings_from_flash(void) {
+    settings_t * settings = SETI_get_settings();
+    uint8_t res8 = 0;
+    uint16_t res16 = 0;
+    NVSResult res = NVS_OK;
+
+    res |= NVS_read_uint8(NVS_TEST_MODE, &res8);
+    settings->test_mode = res8;
+
+    res |= NVS_read_uint8(NVS_BUZZER_ACTIVE, &res8);
+    settings->buzzer_active = res8;
+
+    res |= NVS_read_uint8(NVS_ALPHA, &res8);
+    settings->alpha = res8 / 100.0;
+
+    res |= NVS_read_uint8(NVS_BETA, &res8);
+    settings->beta = res8 / 100.0;
+
+    res |= NVS_read_uint16(NVS_BRAKE_CLOSE_ANGLE, &res16);
+    settings->brake_close_angle = res16;
+
+    res |= NVS_read_uint16(NVS_BRAKE_OPEN_ANGLE, &res16);
+    settings->brake_open_angle = res16;
+
+    res |= NVS_read_uint16(NVS_RECOVERY_CLOSE_ANGLE, &res16);
+    settings->recovery_close_angle = res16;
+
+    res |= NVS_read_uint16(NVS_RECOVERY_OPEN_ANGLE, &res16);
+    settings->recovery_open_angle = res16;
+
+    res |= NVS_read_uint16(NVS_BRAKE_OPEN_TIME, &res16);
+    settings->brake_open_time = res16;
+
+    res |= NVS_read_uint16(NVS_RECOV_SAFETY_TRIG_TIME, &res16);
+    settings->recovery_safety_trigger = res16;
+
+    res |= NVS_read_uint16(NVS_RECOV_OPEN_TIME, &res16);
+    settings->recovery_open_time = res16;
+
+    return res == NVS_OK ? true : false;
+}
+
+
 void init_task(void *arg) {
     bool ret;
     SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK);
@@ -134,29 +202,28 @@ void init_task(void *arg) {
     BRAKE_SERVO_init();
 
     NVS_init();
-    uint8_t test_mode = 0;
-    NVS_read_uint8(NVS_TEST_MODE, &test_mode);
-    SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
+    // set_keys_to_flash();
+    read_settings_from_flash();
+    // SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
 
-    if (test_mode == TEST_MODE_OFF) {
-        LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
-        LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
-        LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
-        LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
-        LPS25HStdConf(&press_sensor);
-    }
     voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL);
     watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
     event_loop_init();
     event_loop_register();
 
-    if (test_mode == TEST_MODE_ON) {
+    if (SETI_get_settings()->test_mode == TEST_MODE_ON) {
         ESP_LOGI(TAG, "Running in test mode");
         NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF);
         UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200);
         rtos_test_mode_init();
     } else {
         ESP_LOGI(TAG, "Running in normal mode");
+
+        // LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read);
+        // LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G);
+        // LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000);
+        // LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H);
+        // LPS25HStdConf(&press_sensor);
         rtos_init();
         console_init();
         console_register_commands(console_commands,
@@ -164,7 +231,10 @@ void init_task(void *arg) {
     }
 
     BUZZER_set_level(0);
-    // TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
 
+    if (SETI_get_settings()->buzzer_active == true) {
+        TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
+    }
+    ESP_LOGI(TAG, "Deleting init task");
     vTaskDelete(NULL);
 }
