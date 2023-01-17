@@ -25,6 +25,6 @@ typedef struct {
 } led_driver_t;
 
 bool led_driver_init(led_driver_t *led_drv, uint8_t led_gpio_num,
-                     uint8_t ledc_channel_num);
+                     uint8_t ledc_channel_num, uint8_t ledc_timer_num);
 
 bool led_driver_update_duty_cycle(led_driver_t *led_drv,  uint16_t duty);

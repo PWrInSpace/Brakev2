@@ -33,22 +33,22 @@ static bool filter_init(void) {
 
 static bool acc_leds_init(void) {
   bool res = 1;
-  res &= led_driver_init(&acc_leds.x, PCB_LED_X, LEDC_CHANNEL_0);
-  res &= led_driver_init(&acc_leds.y, PCB_LED_Y, LEDC_CHANNEL_1);
-  res &= led_driver_init(&acc_leds.z, PCB_LED_Z, LEDC_CHANNEL_2);
+  res &= led_driver_init(&acc_leds.x, PCB_LED_X, LEDC_CHANNEL_0, LEDC_TIMER_0);
+  res &= led_driver_init(&acc_leds.y, PCB_LED_Y, LEDC_CHANNEL_1, LEDC_TIMER_1);
+  res &= led_driver_init(&acc_leds.z, PCB_LED_Z, LEDC_CHANNEL_2, LEDC_TIMER_2);
   if (!res) {
     ESP_LOGE(TAG, "Accelerometer leds driver init failed");
   }
   return res;
 }
 
-#define CRIT_LED_VAL 1.2f
+#define CRIT_LED_VAL 2.f
 
 static uint16_t get_duty_acc(float acc) {
   if (fabsf(acc) >= CRIT_LED_VAL) {
     return MAX_LED_DUTY;
-  } else
-    return (uint16_t)(fabsf(acc) / CRIT_LED_VAL * (float)MAX_LED_DUTY);
+  }
+  return (uint16_t)(fabsf(acc) / CRIT_LED_VAL * (float)MAX_LED_DUTY);
 }
 
 static bool acc_leds_update(void) {
