@@ -85,6 +85,7 @@ typedef struct {
 
 typedef struct {
   LSM6DS3_acc_t acc;
+  LSM6DS3_gyro_t gyro;
   float height;
   float pressure;
   float temp;
@@ -92,6 +93,7 @@ typedef struct {
   struct {
     float height;
     LSM6DS3_acc_t acc;
+    LSM6DS3_gyro_t gyro;
   } filtered_data;
 } sensors_t;
 
