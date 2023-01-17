@@ -23,11 +23,30 @@
 #include "timers_callbacks.h"
 #include "uart.h"
 #include "voltageMeasure.h"
-#include "sm_brake.h"
+#include "state_machine.h"
 #include "watchdog.h"
+#include "settings.h"
 
 // NVS KEYS
-#define NVS_TEST_MODE "TEST_MODE"
+#define NVS_BRAKE_OPEN_ANGLE        "B_OPEN_ANG"
+#define NVS_BRAKE_CLOSE_ANGLE       "B_CLOSE_ANG"
+#define NVS_RECOVERY_OPEN_ANGLE     "R_OPEN_ANG"
+#define NVS_RECOVERY_CLOSE_ANGLE    "R_CLOSE_ANG"
+#define NVS_ALPHA                   "ALPHA_F"
+#define NVS_BETA                    "BETA_F"
+#define NVS_TEST_MODE               "TEST_MODE"
+#define NVS_BUZZER_ACTIVE           "BUZZ_ACTIVE"
+#define NVS_BRAKE_OPEN_TIME         "B_OPEN_TIME"
+#define NVS_RECOV_SAFETY_TRIG_TIME  "R_SAFE_TRIG"
+#define NVS_RECOV_OPEN_TIME         "R_OPEN_TIME"
+
+typedef enum {
+  LAUNCHPAD,
+  ASCENT,
+  BRAKE,
+  DESCENT,
+  GROUND,
+} STATES;
 
 typedef enum {
   TEST_MODE_ON = 1,
@@ -44,7 +63,9 @@ typedef enum {
   SAVE_DATA_EVENT,
   SENSORS_NEW_DATA_EVENT,
   SENSORS_HIGH_ACC_EVENT,
-  SENSORS_APOGEE_EVENT,
+  APOGEE_EVENT,
+  TOUCHDOWN_EVENT,
+  BRAKE_OPEN_EVENT,
 } EVENTS;
 
 typedef enum {

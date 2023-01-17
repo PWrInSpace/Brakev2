@@ -16,3 +16,5 @@ typedef enum {
 NVSResult NVS_init(void);
 NVSResult NVS_write_uint8(const char* key, uint8_t val);
 NVSResult NVS_read_uint8(const char* key, uint8_t* val);
+NVSResult NVS_write_uint16(const char* key, uint16_t val);
+NVSResult NVS_read_uint16(const char* key, uint16_t* val);

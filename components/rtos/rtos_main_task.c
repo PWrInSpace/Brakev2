@@ -30,15 +30,65 @@ static void update_data(void) {
 
 /********************** EVENTS ************************/
 
+static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
+                                   void *data) {
+    ESP_LOGI(TAG, "HIGH ACCELERATION");
+    if (SM_change_state(ASCENT) != SM_OK) {
+        ESP_LOGE(TAG, "UNABLE TO CHANGE STATE TO ASCENT");
+        return;
+    }
+
+    BUZZER_set_level(1);
+    TIMER_start(BRAKE_TIMER, SETI_get_settings()->brake_open_time,
+               TIMER_ONE_SHOT, TIMER_CB_brake_open, NULL);
+    TIMER_start(RECOV_SAFETY_TRIGGER, SETI_get_settings()->recovery_safety_trigger,
+               TIMER_ONE_SHOT, TIMER_CB_recov_trig, NULL);
+    TIMER_stop_and_delete(BUZZER_TIMER);
+    TIMER_start(BUZZER_TIMER, 500, TIMER_ONE_SHOT, TIMER_CB_buzzer_low, NULL);
+}
+
 static void apogee_event(void *h_arg, esp_event_base_t, int32_t id,
                          void *data) {
-  ESP_LOGI(TAG, "NEW DATA EVENT");
-  // move recovery servo
-  TIMER_start(IGNITER_TIMER, RECOV_IGNITER_DELAY_MS, TIMER_ONE_SHOT,
+    ESP_LOGI(TAG, "Apogee event");
+    if (SM_change_state(DESCENT) != SM_OK) {
+        ESP_LOGE(TAG, "Unable to change state to BRAKE");
+        return;
+    }
+
+    settings_t *settings = SETI_get_settings();
+    RECOV_SERVO_move(SETI_get_settings()->recovery_open_angle);
+    TIMER_start(IGNITER_TIMER_ON, settings->recovery_safety_trigger, TIMER_ONE_SHOT,
               TIMER_CB_igniter_high, NULL);
-  TIMER_start(IGNITER_TIMER,
-              RECOV_IGNITER_DELAY_MS + RECOV_IGNITER_HIGH_TIME_MS,
+    TIMER_start(IGNITER_TIMER_OFF,
+              settings->recovery_safety_trigger + settings->recovery_open_time,
               TIMER_ONE_SHOT, TIMER_CB_igniter_low, NULL);
+    TIMER_start(BUZZER_TIMER, 3000, TIMER_ONE_SHOT, TIMER_CB_brake_close, NULL);
+
+    BUZZER_set_level(1);
+    TIMER_stop_and_delete(BUZZER_TIMER);
+    TIMER_start(BUZZER_TIMER, 1000, TIMER_ONE_SHOT, TIMER_CB_buzzer_low, NULL);
+}
+
+static void brake_event(void *h_arg, esp_event_base_t, int32_t id, void *data) {
+    ESP_LOGI(TAG, "Brake event");
+    if (SM_change_state(BRAKE) != SM_OK) {
+        ESP_LOGE(TAG, "Unable to change state to BRAKE");
+        return;
+    }
+
+    BRAKE_SERVO_move(SETI_get_settings()->brake_open_angle);
+    BUZZER_set_level(1);
+    TIMER_stop_and_delete(BUZZER_TIMER);
+    TIMER_start(BUZZER_TIMER, 500, TIMER_ONE_SHOT, TIMER_CB_buzzer_low, NULL);
+}
+
+static void touchdown_event(void *h_arg, esp_event_base_t, int32_t id, void *data) {
+    if (SM_change_state(GROUND) != SM_OK) {
+        ESP_LOGE(TAG, "UNABLE TO CHANGE STATE TO GROUND");
+        return;
+    }
+    TIMER_stop_and_delete(BUZZER_TIMER);
+    TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
 }
 
 static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
@@ -58,14 +108,6 @@ static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
   // set brejk
 }
 
-static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
-                                   void *data) {
-  ESP_LOGI(TAG, "HIGH ACCELERATION");
-  // if (state == LAUNCHPAD) {
-  //     SM_change_state(ASCENT)
-  // }
-}
-
 /********************** EVENT LOOP ************************/
 
 bool event_loop_init(void) {
@@ -79,7 +121,7 @@ bool event_loop_init(void) {
 bool event_loop_register(void) {
   esp_err_t res = ESP_OK;
   res |= esp_event_handler_instance_register_with(event_handle, TASK_EVENTS,
-                                                  SENSORS_APOGEE_EVENT,
+                                                  APOGEE_EVENT,
                                                   apogee_event, NULL, NULL);
 
   res |= esp_event_handler_instance_register_with(
@@ -88,6 +130,12 @@ bool event_loop_register(void) {
 
   res |= esp_event_handler_instance_register_with(
       event_handle, TASK_EVENTS, SENSORS_HIGH_ACC_EVENT, sensors_high_acc_event,
+      NULL, NULL);
+  res |= esp_event_handler_instance_register_with(
+      event_handle, TASK_EVENTS, TOUCHDOWN_EVENT, touchdown_event,
+      NULL, NULL);
+  res |= esp_event_handler_instance_register_with(
+      event_handle, TASK_EVENTS, BRAKE_OPEN_EVENT, brake_event,
       NULL, NULL);
 
   return res == ESP_OK ? true : false;
