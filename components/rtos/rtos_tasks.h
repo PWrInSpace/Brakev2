@@ -26,6 +26,7 @@
 #include "state_machine.h"
 #include "watchdog.h"
 #include "settings.h"
+#include "led_driver.h"
 
 // NVS KEYS
 #define NVS_BRAKE_OPEN_ANGLE        "B_OPEN_ANG"
