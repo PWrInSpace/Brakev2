@@ -138,6 +138,31 @@ static void filtered_update() {
            brake_sensors.filtered.gyro.z);
 }
 
+#define EXIT_COMMAND "exit\r"
+
+static bool check_if_exit_command(char* data) {
+    if (strcmp(data, EXIT_COMMAND) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static void TEST_read_uart_data(void) {
+    char buffer[100] = {0};
+    size_t length = UART_read_until(&uart, buffer, sizeof(buffer), '\r', pdMS_TO_TICKS(500));
+    if (length > 0) {
+        ESP_LOGE(TAG, "Read from serial\nlength: %d\ntext: %s", length, buffer);
+        if (check_if_exit_command(buffer) == true) {
+            esp_restart();
+        }
+        if (sscanf(buffer, "%f;%f;%f;%f;%f;%f;%f;%f", &brake_sensors.acc.x, &brake_sensors.acc.y, &brake_sensors.acc.z,
+                   &brake_sensors.gyro.x, &brake_sensors.gyro.y, &brake_sensors.gyro.z, &brake_sensors.pressure, &brake_sensors.temp) < 8) {
+            ESP_LOGE(TAG, "READ ERRORR");
+        }
+    }
+}
+
 void sensor_task(void *arg) {
   if (!filter_init()) {
     ESP_LOGE(TAG, "Alpha-beta filters not initiated!");
@@ -146,22 +171,26 @@ void sensor_task(void *arg) {
     ESP_LOGE(TAG, "Acceleration sensor leds not initiated!");
   }
   while (1) {
-    LSM6DS3_read_acc(&acc_sensor, &brake_sensors.acc);
+    if (SETI_get_settings()->test_mode == true) {
+        TEST_read_uart_data();
+    } else {
+        LSM6DS3_read_acc(&acc_sensor, &brake_sensors.acc);
 
-    ESP_LOGI(TAG, "Acceleration -> X: %f\tY: %f\tZ: %f", brake_sensors.acc.x,
-             brake_sensors.acc.y, brake_sensors.acc.z);
+        ESP_LOGI(TAG, "Acceleration -> X: %f\tY: %f\tZ: %f", brake_sensors.acc.x,
+                brake_sensors.acc.y, brake_sensors.acc.z);
 
-    LSM6DS3_read_gyro(&acc_sensor, &brake_sensors.gyro);
+        LSM6DS3_read_gyro(&acc_sensor, &brake_sensors.gyro);
 
-    ESP_LOGI(TAG, "Gyroscope -> X: %f\tY: %f\tZ: %f", brake_sensors.gyro.x,
-             brake_sensors.gyro.y, brake_sensors.gyro.z);
+        ESP_LOGI(TAG, "Gyroscope -> X: %f\tY: %f\tZ: %f", brake_sensors.gyro.x,
+                brake_sensors.gyro.y, brake_sensors.gyro.z);
 
-    LPS25HGetHeightAndPressure(&press_sensor, &brake_sensors.height,
-                               &brake_sensors.pressure);
-    LPS25HReadTemperature(&press_sensor, &brake_sensors.temp);
+        LPS25HGetHeightAndPressure(&press_sensor, &brake_sensors.height,
+                                &brake_sensors.pressure);
+        LPS25HReadTemperature(&press_sensor, &brake_sensors.temp);
 
-    ESP_LOGI(TAG, "LPS25H data -> Height: %f\tPressure: %f\tTemperature %f",
-             brake_sensors.height, brake_sensors.pressure, brake_sensors.temp);
+        ESP_LOGI(TAG, "LPS25H data -> Height: %f\tPressure: %f\tTemperature %f",
+                brake_sensors.height, brake_sensors.pressure, brake_sensors.temp);
+    }
 
     brake_sensors.vBatt = voltageMeasureReadVoltage(&vMes);
 
@@ -189,6 +218,6 @@ void sensor_task(void *arg) {
 
     esp_event_post_to(event_get_handle(), TASK_EVENTS, SENSORS_NEW_DATA_EVENT,
                       (void *)&brake_sensors, sizeof(sensors_t), portMAX_DELAY);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
   }
 }
