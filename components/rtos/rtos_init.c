@@ -202,7 +202,7 @@ void init_task(void *arg) {
     BRAKE_SERVO_init();
 
     NVS_init();
-    set_keys_to_flash();
+    // set_keys_to_flash();
     read_settings_from_flash();
     SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT);
 
