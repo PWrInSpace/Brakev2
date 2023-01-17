@@ -12,6 +12,11 @@ static struct {
     alphaBetaValues y;
     alphaBetaValues z;
   } acc;
+  struct {
+    alphaBetaValues x;
+    alphaBetaValues y;
+    alphaBetaValues z;
+  } gyro;
 } alpha_beta_filters;
 
 static struct {
@@ -28,6 +33,9 @@ static bool filter_init(void) {
   res &= alphaBetaInit(&alpha_beta_filters.acc.x, 0.3, 0.05);
   res &= alphaBetaInit(&alpha_beta_filters.acc.y, 0.3, 0.05);
   res &= alphaBetaInit(&alpha_beta_filters.acc.z, 0.3, 0.05);
+  res &= alphaBetaInit(&alpha_beta_filters.gyro.x, 0.3, 0.05);
+  res &= alphaBetaInit(&alpha_beta_filters.gyro.y, 0.3, 0.05);
+  res &= alphaBetaInit(&alpha_beta_filters.gyro.z, 0.3, 0.05);
   return res;
 }
 
@@ -77,6 +85,17 @@ static void filtered_update() {
   ESP_LOGI(TAG, "Filtered acceleration: x: %f\t y:%f\tz:%f",
            brake_sensors.filtered_data.acc.x, brake_sensors.filtered_data.acc.y,
            brake_sensors.filtered_data.acc.z);
+
+  brake_sensors.filtered_data.gyro.x = alphaBetaFilter(
+      &alpha_beta_filters.gyro.x, brake_sensors.gyro.x, up_time);
+  brake_sensors.filtered_data.gyro.y = alphaBetaFilter(
+      &alpha_beta_filters.gyro.y, brake_sensors.gyro.y, up_time);
+  brake_sensors.filtered_data.gyro.z = alphaBetaFilter(
+      &alpha_beta_filters.gyro.z, brake_sensors.gyro.z, up_time);
+  ESP_LOGI(TAG, "Filtered gyro: x: %f\t y:%f\tz:%f",
+           brake_sensors.filtered_data.gyro.x,
+           brake_sensors.filtered_data.gyro.y,
+           brake_sensors.filtered_data.gyro.z);
 }
 
 void sensor_task(void *arg) {
@@ -91,6 +110,11 @@ void sensor_task(void *arg) {
 
     ESP_LOGI(TAG, "Acceleration -> X: %f\tY: %f\tZ: %f", brake_sensors.acc.x,
              brake_sensors.acc.y, brake_sensors.acc.z);
+
+    LSM6DS3_read_gyro(&acc_sensor, &brake_sensors.gyro);
+
+    ESP_LOGI(TAG, "Gyroscope -> X: %f\tY: %f\tZ: %f", brake_sensors.gyro.x,
+             brake_sensors.gyro.y, brake_sensors.gyro.z);
 
     LPS25HGetHeightAndPressure(&press_sensor, &brake_sensors.height,
                                &brake_sensors.pressure);
