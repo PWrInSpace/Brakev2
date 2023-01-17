@@ -245,8 +245,8 @@ void init_task(void *arg) {
         ERR_CHECK_STATUS(LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H), "LPS25H");
         ERR_CHECK_STATUS(LPS25HStdConf(&press_sensor), "LPS25HB conf");
         ERR_CHECK_BOOL(rtos_init(), "RTOS init");
-        ERR_CHECK_BOOL(console_init(), "CLI");
-        ERR_CHECK_BOOL(console_register_commands(console_commands,
+        ERR_CHECK_STATUS(console_init(), "CLI");
+        ERR_CHECK_STATUS(console_register_commands(console_commands,
             sizeof(console_commands)/sizeof(console_commands[0])), "CLI register");
     }
 

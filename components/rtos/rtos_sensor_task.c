@@ -4,6 +4,7 @@
 #include "rtos_tasks.h"
 #include "utils.h"
 #define TAG "SENSORS"
+#define LOG_LOCAL_LEVEL ESP_LOG_WARN
 
 static struct {
   alphaBetaValues height;
