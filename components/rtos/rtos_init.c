@@ -196,13 +196,14 @@ static void err_handling(char *name) {
     vTaskDelay(3000 / portTICK_PERIOD_MS);
     esp_restart();
 }
-static inline void err_check_bool(bool status, char *name) {
+
+static inline void ERR_CHECK_BOOL(bool status, char *name) {
   if (status == false) {
     err_handling(name);
   }
 }
 
-static inline void err_check_status(uint32_t status, char *name) {
+static inline void ERR_CHECK_STATUS(uint32_t status, char *name) {
   if (status != 0) {
     err_handling(name);
   }
@@ -211,49 +212,50 @@ static inline void err_check_status(uint32_t status, char *name) {
 void init_task(void *arg) {
     BUZZER_init(PCB_BUZZER);
     BUZZER_set_level(1);
-    err_check_bool(IGNITER_init(PCB_IGNITER1), "INGITER");
+    ERR_CHECK_BOOL(IGNITER_init(PCB_IGNITER1), "INGITER");
 
-    err_check_bool(SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK), "SPI");
-    err_check_bool(I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL), "I2C");
+    ERR_CHECK_BOOL(SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK), "SPI");
+    ERR_CHECK_BOOL(I2C_init(&i2c_sensors, I2C_NUM_1, PCB_SDA, PCB_SCL), "I2C");
     SM_init();
-    err_check_status(SM_set_states(states_conf, sizeof(states_conf) / sizeof(states_conf[0])),
+    ERR_CHECK_STATUS(SM_set_states(states_conf, sizeof(states_conf) / sizeof(states_conf[0])),
               "State machine set state");
-    err_check_bool(SM_run() == SM_OK ? true : false, "State machine run");
+    ERR_CHECK_BOOL(SM_run() == SM_OK ? true : false, "State machine run");
 
-    err_check_status(NVS_init(), "NVS");
-    err_check_bool(read_settings_from_flash(), "NVS read");
-    err_check_bool(SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT), "SD_init");
+    ERR_CHECK_STATUS(NVS_init(), "NVS");
+    ERR_CHECK_BOOL(read_settings_from_flash(), "NVS read");
+    ERR_CHECK_BOOL(SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT), "SD_init");
 
-    err_check_status(voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL), "V measure");
+    ERR_CHECK_STATUS(voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL), "V measure");
     watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
-    err_check_bool(event_loop_init(), "event loop");
-    err_check_bool(event_loop_register(), "event loop register");
+    ERR_CHECK_BOOL(event_loop_init(), "event loop");
+    ERR_CHECK_BOOL(event_loop_register(), "event loop register");
 
     if (SETI_get_settings()->test_mode == TEST_MODE_ON) {
         ESP_LOGI(TAG, "Running in test mode");
-        err_check_status(NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF), "NVS write");
-        err_check_bool(UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200), "Uart");
-        err_check_bool(rtos_test_mode_init(), "RTOS init");
+        ERR_CHECK_STATUS(NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF), "NVS write");
+        ERR_CHECK_BOOL(UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200), "Uart");
+        ERR_CHECK_BOOL(rtos_test_mode_init(), "RTOS init");
     } else {
         ESP_LOGI(TAG, "Running in normal mode");
 
-        err_check_bool(LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read), "LSM6DS3");
-        err_check_bool(LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G), "LSM6DSA3 acc scale");
-        err_check_bool(LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000), "LSM6DSA3 acc scale");
-        err_check_status(LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H), "LPS25H");
-        err_check_status(LPS25HStdConf(&press_sensor), "LPS25HB conf");
-        err_check_bool(rtos_init(), "RTOS init");
-        err_check_bool(console_init(), "CLI");
-        err_check_bool(console_register_commands(console_commands,
+        ERR_CHECK_BOOL(LSM6DS3_init(&acc_sensor, 0x6B, i2c_num1_write, i2c_num1_read), "LSM6DS3");
+        ERR_CHECK_BOOL(LSM6DS3_set_acc_scale(&acc_sensor, LSM6DS3_ACC_16G), "LSM6DSA3 acc scale");
+        ERR_CHECK_BOOL(LSM6DS3_set_gyro_scale(&acc_sensor, LSM6DS3_GYRO_2000),
+                        "LSM6DSA3 gyro scale");
+        ERR_CHECK_STATUS(LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H), "LPS25H");
+        ERR_CHECK_STATUS(LPS25HStdConf(&press_sensor), "LPS25HB conf");
+        ERR_CHECK_BOOL(rtos_init(), "RTOS init");
+        ERR_CHECK_BOOL(console_init(), "CLI");
+        ERR_CHECK_BOOL(console_register_commands(console_commands,
             sizeof(console_commands)/sizeof(console_commands[0])), "CLI register");
     }
 
     BUZZER_set_level(0);
-    err_check_bool(RECOV_SERVO_init(), "Recovery servo init");
-    err_check_bool(BRAKE_SERVO_init(), "Brake servo init");
-    err_check_bool(RECOV_SERVO_move(SETI_get_settings()->recovery_close_angle),
+    ERR_CHECK_BOOL(RECOV_SERVO_init(), "Recovery servo init");
+    ERR_CHECK_BOOL(BRAKE_SERVO_init(), "Brake servo init");
+    ERR_CHECK_BOOL(RECOV_SERVO_move(SETI_get_settings()->recovery_close_angle),
                   "Recovery servo move");
-    err_check_bool(BRAKE_SERVO_move(SETI_get_settings()->brake_close_angle),
+    ERR_CHECK_BOOL(BRAKE_SERVO_move(SETI_get_settings()->brake_close_angle),
                   "Brake servo init");
 
     if (SETI_get_settings()->buzzer_active == true) {

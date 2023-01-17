@@ -94,8 +94,7 @@ static void touchdown_event(void *h_arg, esp_event_base_t, int32_t id, void *dat
 static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
                                    void *data) {
   ESP_LOGI(TAG, "NEW DATA EVENT");
-  // get data
-  // update data
+  main_data.sensors = *(sensors_t*)data;
   update_data();
 
   if (main_data.state < 6) {
