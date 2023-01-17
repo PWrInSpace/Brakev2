@@ -1,9 +1,11 @@
 // Copyright 2022 PWrInSpace, Kuba
+#include <math.h>
+
 #include "rtos_tasks.h"
 #include "utils.h"
 #define TAG "SENSORS"
 
-struct {
+static struct {
   alphaBetaValues height;
   struct {
     alphaBetaValues x;
@@ -11,6 +13,12 @@ struct {
     alphaBetaValues z;
   } acc;
 } alpha_beta_filters;
+
+static struct {
+  led_driver_t x;
+  led_driver_t y;
+  led_driver_t z;
+} acc_leds;
 
 static sensors_t brake_sensors;
 
@@ -20,6 +28,37 @@ static bool filter_init(void) {
   res &= alphaBetaInit(&alpha_beta_filters.acc.x, 0.3, 0.05);
   res &= alphaBetaInit(&alpha_beta_filters.acc.y, 0.3, 0.05);
   res &= alphaBetaInit(&alpha_beta_filters.acc.z, 0.3, 0.05);
+  return res;
+}
+
+static bool acc_leds_init(void) {
+  bool res = 1;
+  res &= led_driver_init(&acc_leds.x, PCB_LED_X, LEDC_CHANNEL_0, LEDC_TIMER_0);
+  res &= led_driver_init(&acc_leds.y, PCB_LED_Y, LEDC_CHANNEL_1, LEDC_TIMER_1);
+  res &= led_driver_init(&acc_leds.z, PCB_LED_Z, LEDC_CHANNEL_2, LEDC_TIMER_2);
+  if (!res) {
+    ESP_LOGE(TAG, "Accelerometer leds driver init failed");
+  }
+  return res;
+}
+
+#define CRIT_LED_VAL 2.f
+
+static uint16_t get_duty_acc(float acc) {
+  if (fabsf(acc) >= CRIT_LED_VAL) {
+    return MAX_LED_DUTY;
+  }
+  return (uint16_t)(fabsf(acc) / CRIT_LED_VAL * (float)MAX_LED_DUTY);
+}
+
+static bool acc_leds_update(void) {
+  bool res = 1;
+  res &= led_driver_update_duty_cycle(&acc_leds.x,
+                                      get_duty_acc(brake_sensors.acc.x));
+  res &= led_driver_update_duty_cycle(&acc_leds.y,
+                                      get_duty_acc(brake_sensors.acc.y));
+  res &= led_driver_update_duty_cycle(&acc_leds.z,
+                                      get_duty_acc(brake_sensors.acc.z));
   return res;
 }
 
@@ -44,6 +83,9 @@ void sensor_task(void *arg) {
   if (!filter_init()) {
     ESP_LOGE(TAG, "Alpha-beta filters not initiated!");
   }
+  if (!acc_leds_init()) {
+    ESP_LOGE(TAG, "Acceleration sensor leds not initiated!");
+  }
   while (1) {
     LSM6DS3_read_acc(&acc_sensor, &brake_sensors.acc);
 
@@ -63,9 +105,11 @@ void sensor_task(void *arg) {
 
     // Filters
     filtered_update();
+    // LEDs
+    acc_leds_update();
 
     esp_event_post_to(event_get_handle(), TASK_EVENTS, SENSORS_NEW_DATA_EVENT,
                       (void *)&brake_sensors, sizeof(sensors_t), portMAX_DELAY);
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }

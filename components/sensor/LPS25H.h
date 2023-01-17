@@ -96,7 +96,7 @@ LPS25HResult LPS25HRegisterWriteByte(LPS25H *lps, uint8_t regAddr,
          RES_CONF -> 0x05
          FIFO_CTRL -> 0xDF -> 32 samples average
          CTRL_REG2 -> 0x40
-         CTRL_REG1 -> 0xA0 -> 7Hz data rate
+         CTRL_REG1 -> 0xC0 -> 25Hz data rate
   \returns LPS25H_OK if all i2c write operations are successful,
            LPS25H_ConfigError otherwise
 */
