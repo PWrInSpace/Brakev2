@@ -6,10 +6,12 @@
 #define TAG "SENSORS"
 #define LOG_LOCAL_LEVEL ESP_LOG_WARN
 
-#define CRIT_ACCELERATION 5.f           // g
+#define CRIT_ACCELERATION 5.f  // g
+#define CRIT_TOUCHDOWN_ACC -3.f
 #define CRIT_APOGEE_ZERO_G_MARGIN 0.2f  // g
 #define CRIT_CONTINUOUS_NUM_ACC 5
 #define CRIT_CONTINUOUS_NUM_APOGEE 5
+#define CRIT_CONTINUOUS_NUM_TOUCHDOWN 3
 
 static struct {
   alphaBetaValues height;
@@ -89,12 +91,24 @@ static bool check_for_high_acc_event(void) {
 static bool check_for_apogee_event(void) {
   static uint8_t consecutive_zero_g = 0;
   if (fabsf(brake_sensors.filtered.acc.x + brake_sensors.filtered.acc.y +
-            brake_sensors.filtered.acc.z) < CRIT_APOGEE_ZERO_G_MARGIN) {
+            brake_sensors.filtered.acc.z) < CRIT_APOGEE_ZERO_G_MARGIN &&
+      alpha_beta_filters.height.vk < 0.f) {
     consecutive_zero_g++;
   } else if (consecutive_zero_g != 0) {
     consecutive_zero_g--;
   }
   return consecutive_zero_g >= CRIT_CONTINUOUS_NUM_APOGEE;
+}
+
+static bool check_for_touchdown_event(void) {
+  static uint8_t consecutive_touchdown = 0;
+  if (brake_sensors.filtered.acc.z < CRIT_TOUCHDOWN_ACC &&
+      fabsf(alpha_beta_filters.height.vk) <= 0.5f) {
+    consecutive_touchdown++;
+  } else if (consecutive_touchdown != 0) {
+    consecutive_touchdown--;
+  }
+  return consecutive_touchdown >= CRIT_CONTINUOUS_NUM_TOUCHDOWN;
 }
 
 static void filtered_update() {
@@ -163,8 +177,13 @@ void sensor_task(void *arg) {
                         (void *)NULL, 0, portMAX_DELAY);
     }
 
-    if (check_for_high_apogee_event()) {
+    if (check_for_apogee_event()) {
       esp_event_post_to(event_get_handle(), TASK_EVENTS, APOGEE_EVENT,
+                        (void *)NULL, 0, portMAX_DELAY);
+    }
+
+    if (check_for_touchdown_event()) {
+      esp_event_post_to(event_get_handle(), TASK_EVENTS, TOUCHDOWN_EVENT,
                         (void *)NULL, 0, portMAX_DELAY);
     }
 
