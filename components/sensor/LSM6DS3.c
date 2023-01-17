@@ -7,6 +7,8 @@
 
 #define LSM6DS3_TAG "LSM6DS3"
 
+#define LOG_LOCAL_LEVEL ESP_LOG_WARN
+
 static uint8_t create_register_CTRL1_XL(LSM6DS3_t *sensor) {
     uint8_t reg = 0;
     reg |= sensor->acc_bw;

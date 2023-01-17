@@ -42,7 +42,7 @@ static bool can_save_data_to_flash(DATA_SAVE_OPTIONS option) {
 
 static size_t create_data_csv(data_to_memory_task_t *rec, char *data_string, size_t len) {
     return snprintf(data_string, len,
-        "Test;%d;%ld;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",
+        "Test;%d;%ld;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n",
         rec->data.state, rec->data.up_time,
         rec->data.sensors.acc.x, rec->data.sensors.acc.y, rec->data.sensors.acc.z,
         rec->data.sensors.gyro.x, rec->data.sensors.gyro.y, rec->data.sensors.gyro.z,

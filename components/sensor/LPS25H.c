@@ -2,6 +2,8 @@
 
 #include "LPS25H.h"
 
+#define LOG_LOCAL_LEVEL ESP_LOG_WARN
+
 LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress) {
   lps->port = portNum;
   lps->addr = i2cAddress;
