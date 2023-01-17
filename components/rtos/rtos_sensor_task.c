@@ -6,6 +6,11 @@
 #define TAG "SENSORS"
 #define LOG_LOCAL_LEVEL ESP_LOG_WARN
 
+#define CRIT_ACCELERATION 5.f           // g
+#define CRIT_APOGEE_ZERO_G_MARGIN 0.2f  // g
+#define CRIT_CONTINUOUS_NUM_ACC 5
+#define CRIT_CONTINUOUS_NUM_APOGEE 5
+
 static struct {
   alphaBetaValues height;
   struct {
@@ -71,6 +76,27 @@ static bool acc_leds_update(void) {
   return res;
 }
 
+static bool check_for_high_acc_event(void) {
+  static uint8_t consecutive_high_acc = 0;
+  if (brake_sensors.filtered.acc.z > CRIT_ACCELERATION) {
+    consecutive_high_acc++;
+  } else if (consecutive_high_acc != 0) {
+    consecutive_high_acc--;
+  }
+  return consecutive_high_acc >= CRIT_CONTINUOUS_NUM_ACC;
+}
+
+static bool check_for_apogee_event(void) {
+  static uint8_t consecutive_zero_g = 0;
+  if (fabsf(brake_sensors.filtered.acc.x + brake_sensors.filtered.acc.y +
+            brake_sensors.filtered.acc.z) < CRIT_APOGEE_ZERO_G_MARGIN) {
+    consecutive_zero_g++;
+  } else if (consecutive_zero_g != 0) {
+    consecutive_zero_g--;
+  }
+  return consecutive_zero_g >= CRIT_CONTINUOUS_NUM_APOGEE;
+}
+
 static void filtered_update() {
   float up_time = (float)get_time_ms() * 1000.f;
 
@@ -94,8 +120,7 @@ static void filtered_update() {
   brake_sensors.filtered.gyro.z = alphaBetaFilter(
       &alpha_beta_filters.gyro.z, brake_sensors.gyro.z, up_time);
   ESP_LOGI(TAG, "Filtered gyro: x: %f\t y:%f\tz:%f",
-           brake_sensors.filtered.gyro.x,
-           brake_sensors.filtered.gyro.y,
+           brake_sensors.filtered.gyro.x, brake_sensors.filtered.gyro.y,
            brake_sensors.filtered.gyro.z);
 }
 
@@ -132,6 +157,16 @@ void sensor_task(void *arg) {
     filtered_update();
     // LEDs
     acc_leds_update();
+
+    if (check_for_high_acc_event()) {
+      esp_event_post_to(event_get_handle(), TASK_EVENTS, SENSORS_HIGH_ACC_EVENT,
+                        (void *)NULL, 0, portMAX_DELAY);
+    }
+
+    if (check_for_high_apogee_event()) {
+      esp_event_post_to(event_get_handle(), TASK_EVENTS, APOGEE_EVENT,
+                        (void *)NULL, 0, portMAX_DELAY);
+    }
 
     esp_event_post_to(event_get_handle(), TASK_EVENTS, SENSORS_NEW_DATA_EVENT,
                       (void *)&brake_sensors, sizeof(sensors_t), portMAX_DELAY);
