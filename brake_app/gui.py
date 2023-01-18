@@ -17,10 +17,11 @@ import threading
 class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.initializeUI()
         self.cli = CLI()
         self.flight_data = FlightData()
         self.test_data_timer = None
+        self.initializeUI()
+        self.cli.set_read_cb(self.cli_data_cb)
 
     def initializeUI(self):
         self.setWindowTitle("Brejk")
@@ -31,8 +32,10 @@ class MainWindow(QWidget):
         self._layoutTestMode(layout)
         self._layoutStatus(layout)
         self._layoutLog(layout)
+        self._layoutTestStats(layout)
         self.setLayout(layout)
         self.initSerialInfo()
+
 
     def _layoutFile(self, layout):
         label = QLabel("File path")
@@ -91,21 +94,41 @@ class MainWindow(QWidget):
         # self.progress.setGeometry(200, 80, 250, 20)
         layout.addWidget(self.progress, 3, 1, 1, 5)
 
+    def _layoutTestStats(self, layout):
+        connection_text_label = QLabel("State:")
+        layout.addWidget(connection_text_label, 4, 0)
+        self.state = QLabel("")
+        layout.addWidget(self.state, 4, 1)
+
+        file_status_text_label = QLabel("Altitude:")
+        layout.addWidget(file_status_text_label, 4, 2)
+        self.altitude = QLabel("")
+        layout.addWidget(self.altitude, 4, 3)
+
+        file_status_text_label = QLabel("Velocity:")
+        layout.addWidget(file_status_text_label, 4, 4)
+        self.velocity = QLabel("")
+        layout.addWidget(self.velocity, 4, 5)
+
+        connection_text_label = QLabel("Apogee: ")
+        layout.addWidget(connection_text_label, 5, 0, 1, 2)
+        self.apogee = QLabel("Not detected")
+        layout.addWidget(self.apogee, 5, 2, 1, 4)
 
     def _layoutStatus(self, layout):
         connection_text_label = QLabel("Connection status:")
-        layout.addWidget(connection_text_label, 4, 0, 1, 2)
+        layout.addWidget(connection_text_label, 6, 0, 1, 2)
         self.connection_label = QLabel("Disconnected")
-        layout.addWidget(self.connection_label, 4, 2, 1, 4)
+        layout.addWidget(self.connection_label, 6, 2, 1, 4)
 
         file_status_text_label = QLabel("File status:")
-        layout.addWidget(file_status_text_label, 5, 0, 1, 2)
+        layout.addWidget(file_status_text_label, 7, 0, 1, 2)
         self.file_status_label = QLabel("Not created")
-        layout.addWidget(self.file_status_label, 5, 2, 1, 4)
+        layout.addWidget(self.file_status_label, 7, 2, 1, 4)
 
     def _layoutLog(self, layout):
         self.log_label = QLabel("Log: ")
-        layout.addWidget(self.log_label, 6, 0, 1, 4)
+        layout.addWidget(self.log_label, 8, 0, 1, 4)
 
     def initSerialInfo(self):
         self.port_combo_box.addItems(CLI.get_port_list())
@@ -133,15 +156,12 @@ class MainWindow(QWidget):
             self.connection_label.setText("Connected")
             self.updateLog("Connected to serial port " + port)
             self.button_test_mode_cmd.setDisabled(False)
+            self.cli.start()
         else:
             self.updateLog("Unable to connect to serial port " + port)
 
     def testModeCmdButtonClicked(self):
-        ret = self.cli.send_command("test-mode")
-        if "CLI" in ret:
-            time.sleep(0.5)
-            self.updateLog("Test mode turned on")
-            self.button_test.setDisabled(False)
+        self.cli.write("test-mode")
 
     def testModeCallback(self):
         data = self.flight_data.getPreparedLine()
@@ -150,7 +170,7 @@ class MainWindow(QWidget):
         self.cli.write(data)
         self.progress.setValue(pos)
         if pos < data_len:
-            self.test_data_timer = threading.Timer(0.01, self.testModeCallback)
+            self.test_data_timer = threading.Timer(0.05, self.testModeCallback)
             self.test_data_timer.start()
         else:
             self.button_test.setEnabled(True)
@@ -174,5 +194,21 @@ class MainWindow(QWidget):
         if self.test_data_timer:
             self.test_data_timer.cancel()
 
-        self.cli.send_command("exit")
+        self.cli.write("exit")
         return super().closeEvent(a0)
+
+    def cli_data_cb(self, **kwargs):
+        data = str(kwargs["rec_data"])
+        if "CLI" in data:
+            time.sleep(0.5)
+            self.updateLog("Test mode turned on")
+            self.button_test.setDisabled(False)
+        elif "MEM_TASK" in data:
+            splitted = data.split(";")
+            self.state.setText(splitted[3])
+            self.altitude.setText(splitted[5])
+            self.velocity.setText(splitted[6])
+        elif "Apogee deteceted," in data:
+            splitted = data.split("Apogee deteceted,")
+            self.apogee.setText(splitted[1][:-6])
+

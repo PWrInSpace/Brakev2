@@ -26,18 +26,20 @@ static data_to_memory_task_t create_data_to_memory_struct(void) {
 static void update_data(void) {
   main_data.state = SM_get_current_state();
   main_data.up_time = get_time_ms();
+  main_data.flight_time = FLIGHT_TIME_get_time(get_time_ms());
 }
 
 /********************** EVENTS ************************/
 
 static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
                                    void *data) {
-    ESP_LOGI(TAG, "HIGH ACCELERATION");
+    ESP_LOGD(TAG, "HIGH ACCELERATION");
     if (SM_change_state(ASCENT) != SM_OK) {
         ESP_LOGE(TAG, "UNABLE TO CHANGE STATE TO ASCENT");
         return;
     }
 
+    FLIGHT_TIME_start(get_time_ms());
     BUZZER_set_level(1);
     TIMER_start(BRAKE_TIMER, SETI_get_settings()->brake_open_time,
                TIMER_ONE_SHOT, TIMER_CB_brake_open, NULL);
@@ -49,11 +51,14 @@ static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
 
 static void apogee_event(void *h_arg, esp_event_base_t, int32_t id,
                          void *data) {
-    ESP_LOGI(TAG, "Apogee event");
+    ESP_LOGD(TAG, "Apogee event");
     if (SM_change_state(DESCENT) != SM_OK) {
-        ESP_LOGE(TAG, "Unable to change state to BRAKE");
+        ESP_LOGE(TAG, "Unable to change state to DESCENT");
         return;
     }
+
+    ESP_LOGI(TAG, "Apogee deteceted, altitude: %.2f\t time: %d",
+      main_data.sensors.filtered.height, FLIGHT_TIME_get_time(get_time_ms()));
 
     settings_t *settings = SETI_get_settings();
     RECOV_SERVO_move(SETI_get_settings()->recovery_open_angle);
@@ -62,7 +67,8 @@ static void apogee_event(void *h_arg, esp_event_base_t, int32_t id,
     TIMER_start(IGNITER_TIMER_OFF,
               settings->recovery_safety_trigger + settings->recovery_open_time,
               TIMER_ONE_SHOT, TIMER_CB_igniter_low, NULL);
-    TIMER_start(BUZZER_TIMER, 3000, TIMER_ONE_SHOT, TIMER_CB_brake_close, NULL);
+    TIMER_start(BRAKE_TIMER, 3000, TIMER_ONE_SHOT, TIMER_CB_brake_close, NULL);
+    TIMER_start(RECOV_SERVO_TIMER, 2000, TIMER_ONE_SHOT, TIMER_CB_recov_close, NULL);
 
     BUZZER_set_level(1);
     TIMER_stop_and_delete(BUZZER_TIMER);
@@ -70,7 +76,7 @@ static void apogee_event(void *h_arg, esp_event_base_t, int32_t id,
 }
 
 static void brake_event(void *h_arg, esp_event_base_t, int32_t id, void *data) {
-    ESP_LOGI(TAG, "Brake event");
+    ESP_LOGD(TAG, "Brake event");
     if (SM_change_state(BRAKE) != SM_OK) {
         ESP_LOGE(TAG, "Unable to change state to BRAKE");
         return;

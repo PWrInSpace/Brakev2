@@ -55,7 +55,7 @@ int UART_read_until(uart_t *uart, char *buffer, size_t buffer_size,
     while (temp_buff != sign) {
         read_size = uart_read_bytes(*uart, &temp_buff, sizeof(temp_buff), pdMS_TO_TICKS(2));
         if (read_size > 0) {
-            start_time = xTaskGetTickCount();
+            // start_time = xTaskGetTickCount();
             buffer[read_bytes] = temp_buff;
             read_bytes++;
         }

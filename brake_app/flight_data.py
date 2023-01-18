@@ -1,7 +1,7 @@
 import pandas as pd
 
 class FlightData:
-    DATA_TO_COPY = ["ax", "ay", "az", "gx", "gy", "gz", "pressure", "altitude"]
+    DATA_TO_COPY = ["ax", "ay", "az", "gx", "gy", "gz", "pressure", "tempreature"]
 
     def __init__(self):
         self.prepared_df = None

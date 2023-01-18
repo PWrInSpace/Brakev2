@@ -27,6 +27,7 @@
 #include "watchdog.h"
 #include "settings.h"
 #include "led_driver.h"
+#include "flight_time.h"
 
 // NVS KEYS
 #define NVS_BRAKE_OPEN_ANGLE        "B_OPEN_ANG"
@@ -90,6 +91,7 @@ typedef struct {
   float pressure;
   float temp;
   float vBatt;
+  float velocity;
   struct {
     float height;
     LSM6DS3_acc_t acc;
@@ -99,6 +101,7 @@ typedef struct {
 
 typedef struct {
   int64_t up_time;
+  int64_t flight_time;
   uint8_t state;
   sensors_t sensors;
 } rocket_data_t;
