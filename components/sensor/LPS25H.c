@@ -95,8 +95,7 @@ LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height,
   LPS25HResult res = LPS25H_OK;
   res |= LPS25HReadPressure(lps, press);
   if (res != LPS25H_OK) {
-    *height = 0;
-    return LPS25H_ReadError;
+    *height = 0;    return LPS25H_ReadError;
   }
   *height = 44330 * (1 - pow((*press / REFERENCE_PRESSURE_HPA), 1.f / 5.255f));
   return LPS25H_OK;

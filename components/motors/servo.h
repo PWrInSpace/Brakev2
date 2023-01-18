@@ -1,4 +1,4 @@
-// Copyright 2022 PWrInSpace, Kuba
+// Copyright 2022 PWrInSpace
 
 #ifndef SERVO_H
 #define SERVO_H

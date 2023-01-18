@@ -52,8 +52,8 @@ esp_console_cmd_t console_commands[] = {
     {"recov-close", "Set recovery close angle", NULL, CLI_set_recovery_close_angle, NULL},
     {"recov-trigg", "Set recovery safety trigger", NULL, CLI_set_safety_trigger_time, NULL},
     {"recov-open-time", "Set recovery open time", NULL, CLI_set_recovery_open_time, NULL},
-    {"alpha", "Set alpha", NULL, CLI_set_alpha, NULL},
-    {"beta", "Set beta", NULL, CLI_set_beta, NULL},
+    // {"alpha", "Set alpha", NULL, CLI_set_alpha, NULL},
+    // {"beta", "Set beta", NULL, CLI_set_beta, NULL},
     {"buzzer-active", "Buzzer active after startup", NULL, CLI_buzzer_active, NULL},
 };
 
@@ -234,7 +234,7 @@ void init_task(void *arg) {
         ESP_LOGI(TAG, "Running in test mode");
         ERR_CHECK_STATUS(NVS_write_uint8(NVS_TEST_MODE, TEST_MODE_OFF), "NVS write");
         ERR_CHECK_BOOL(UART_init(&uart, UART_NUM_0, PCB_TX, PCB_RX, 115200), "Uart");
-        ERR_CHECK_BOOL(rtos_test_mode_init(), "RTOS init");
+        // ERR_CHECK_BOOL(rtos_test_mode_init(), "RTOS init");
     } else {
         ESP_LOGI(TAG, "Running in normal mode");
 
@@ -244,11 +244,11 @@ void init_task(void *arg) {
                         "LSM6DSA3 gyro scale");
         ERR_CHECK_STATUS(LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H), "LPS25H");
         ERR_CHECK_STATUS(LPS25HStdConf(&press_sensor), "LPS25HB conf");
-        ERR_CHECK_BOOL(rtos_init(), "RTOS init");
         ERR_CHECK_STATUS(console_init(), "CLI");
         ERR_CHECK_STATUS(console_register_commands(console_commands,
             sizeof(console_commands)/sizeof(console_commands[0])), "CLI register");
     }
+    ERR_CHECK_BOOL(rtos_init(), "RTOS init");
 
     BUZZER_set_level(0);
     ERR_CHECK_BOOL(RECOV_SERVO_init(), "Recovery servo init");

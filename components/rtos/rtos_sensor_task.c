@@ -1,4 +1,4 @@
-// Copyright 2022 PWrInSpace, Kuba
+// Copyright 2022 PWrInSpace, Krzysztof Gliwiński
 #include <math.h>
 
 #include "rtos_tasks.h"
@@ -7,11 +7,12 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_WARN
 
 #define CRIT_ACCELERATION 5.f  // g
-#define CRIT_TOUCHDOWN_ACC -3.f
+#define CRIT_TOUCHDOWN_ACC -2.f
+#define CRIT_TOUCHDOWN_HEIGHT 15.f
 #define CRIT_APOGEE_ZERO_G_MARGIN 0.2f  // g
 #define CRIT_CONTINUOUS_NUM_ACC 5
 #define CRIT_CONTINUOUS_NUM_APOGEE 5
-#define CRIT_CONTINUOUS_NUM_TOUCHDOWN 3
+#define CRIT_CONTINUOUS_NUM_TOUCHDOWN 1
 
 static struct {
   alphaBetaValues height;
@@ -33,6 +34,7 @@ static struct {
   led_driver_t z;
 } acc_leds;
 
+static bool apogee_detected = false;
 static sensors_t brake_sensors;
 
 static bool filter_init(void) {
@@ -80,6 +82,9 @@ static bool acc_leds_update(void) {
 
 static bool check_for_high_acc_event(void) {
   static uint8_t consecutive_high_acc = 0;
+  if (consecutive_high_acc > CRIT_CONTINUOUS_NUM_APOGEE + 3) {
+        consecutive_high_acc = 0;
+    }
   if (brake_sensors.filtered.acc.z > CRIT_ACCELERATION) {
     consecutive_high_acc++;
   } else if (consecutive_high_acc != 0) {
@@ -90,6 +95,9 @@ static bool check_for_high_acc_event(void) {
 
 static bool check_for_apogee_event(void) {
   static uint8_t consecutive_zero_g = 0;
+    if (consecutive_zero_g > CRIT_CONTINUOUS_NUM_APOGEE + 3) {
+        consecutive_zero_g = 0;
+    }
   if (fabsf(brake_sensors.filtered.acc.x + brake_sensors.filtered.acc.y +
             brake_sensors.filtered.acc.z) < CRIT_APOGEE_ZERO_G_MARGIN &&
       alpha_beta_filters.height.vk < 0.f) {
@@ -97,13 +105,19 @@ static bool check_for_apogee_event(void) {
   } else if (consecutive_zero_g != 0) {
     consecutive_zero_g--;
   }
+
+    if (consecutive_zero_g >= CRIT_CONTINUOUS_NUM_APOGEE) {
+        apogee_detected = true;
+    }
+
   return consecutive_zero_g >= CRIT_CONTINUOUS_NUM_APOGEE;
 }
 
 static bool check_for_touchdown_event(void) {
   static uint8_t consecutive_touchdown = 0;
-  if (brake_sensors.filtered.acc.z < CRIT_TOUCHDOWN_ACC &&
-      fabsf(alpha_beta_filters.height.vk) <= 0.5f) {
+  if (apogee_detected == true &&
+      fabs(alpha_beta_filters.height.vk) <= 0.5f &&
+      brake_sensors.filtered.height < CRIT_TOUCHDOWN_HEIGHT) {
     consecutive_touchdown++;
   } else if (consecutive_touchdown != 0) {
     consecutive_touchdown--;
@@ -112,10 +126,11 @@ static bool check_for_touchdown_event(void) {
 }
 
 static void filtered_update() {
-  float up_time = (float)get_time_ms() * 1000.f;
+  float up_time = (float)get_time_ms() / 1000.f;
 
   brake_sensors.filtered.height = alphaBetaFilter(
       &alpha_beta_filters.height, brake_sensors.height, up_time);
+  brake_sensors.velocity = alpha_beta_filters.height.vk;
   ESP_LOGI(TAG, "Filtered height: %f", brake_sensors.filtered.height);
   brake_sensors.filtered.acc.x =
       alphaBetaFilter(&alpha_beta_filters.acc.x, brake_sensors.acc.x, up_time);
@@ -138,6 +153,35 @@ static void filtered_update() {
            brake_sensors.filtered.gyro.z);
 }
 
+#define EXIT_COMMAND "exit\r"
+
+static bool check_if_exit_command(char* data) {
+    if (strcmp(data, EXIT_COMMAND) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static void TEST_read_uart_data(void) {
+    char buffer[100] = {0};
+    size_t length = UART_read_until(&uart, buffer, sizeof(buffer), '\r', pdMS_TO_TICKS(100));
+    if (length > 0) {
+        if (check_if_exit_command(buffer) == true) {
+            esp_restart();
+        }
+        if (sscanf(buffer, "%f;%f;%f;%f;%f;%f;%f;%f", &brake_sensors.acc.x, &brake_sensors.acc.y,
+                    &brake_sensors.acc.z, &brake_sensors.gyro.x, &brake_sensors.gyro.y,
+                    &brake_sensors.gyro.z, &brake_sensors.pressure, &brake_sensors.temp) < 8) {
+            ESP_LOGE(TAG, "READ ERRORR");
+            return;
+        }
+
+        brake_sensors.height = 44330 * (1 - pow((brake_sensors.pressure /
+                                    REFERENCE_PRESSURE_HPA), 1.f / 5.255f));
+    }
+}
+
 void sensor_task(void *arg) {
   if (!filter_init()) {
     ESP_LOGE(TAG, "Alpha-beta filters not initiated!");
@@ -146,22 +190,26 @@ void sensor_task(void *arg) {
     ESP_LOGE(TAG, "Acceleration sensor leds not initiated!");
   }
   while (1) {
-    LSM6DS3_read_acc(&acc_sensor, &brake_sensors.acc);
+    if (SETI_get_settings()->test_mode == true) {
+        TEST_read_uart_data();
+    } else {
+        LSM6DS3_read_acc(&acc_sensor, &brake_sensors.acc);
 
-    ESP_LOGI(TAG, "Acceleration -> X: %f\tY: %f\tZ: %f", brake_sensors.acc.x,
-             brake_sensors.acc.y, brake_sensors.acc.z);
+        ESP_LOGI(TAG, "Acceleration -> X: %f\tY: %f\tZ: %f", brake_sensors.acc.x,
+                brake_sensors.acc.y, brake_sensors.acc.z);
 
-    LSM6DS3_read_gyro(&acc_sensor, &brake_sensors.gyro);
+        LSM6DS3_read_gyro(&acc_sensor, &brake_sensors.gyro);
 
-    ESP_LOGI(TAG, "Gyroscope -> X: %f\tY: %f\tZ: %f", brake_sensors.gyro.x,
-             brake_sensors.gyro.y, brake_sensors.gyro.z);
+        ESP_LOGI(TAG, "Gyroscope -> X: %f\tY: %f\tZ: %f", brake_sensors.gyro.x,
+                brake_sensors.gyro.y, brake_sensors.gyro.z);
 
-    LPS25HGetHeightAndPressure(&press_sensor, &brake_sensors.height,
-                               &brake_sensors.pressure);
-    LPS25HReadTemperature(&press_sensor, &brake_sensors.temp);
+        LPS25HGetHeightAndPressure(&press_sensor, &brake_sensors.height,
+                                &brake_sensors.pressure);
+        LPS25HReadTemperature(&press_sensor, &brake_sensors.temp);
 
-    ESP_LOGI(TAG, "LPS25H data -> Height: %f\tPressure: %f\tTemperature %f",
-             brake_sensors.height, brake_sensors.pressure, brake_sensors.temp);
+        ESP_LOGI(TAG, "LPS25H data -> Height: %f\tPressure: %f\tTemperature %f",
+                brake_sensors.height, brake_sensors.pressure, brake_sensors.temp);
+    }
 
     brake_sensors.vBatt = voltageMeasureReadVoltage(&vMes);
 
@@ -189,6 +237,11 @@ void sensor_task(void *arg) {
 
     esp_event_post_to(event_get_handle(), TASK_EVENTS, SENSORS_NEW_DATA_EVENT,
                       (void *)&brake_sensors, sizeof(sensors_t), portMAX_DELAY);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    if (SETI_get_settings()->test_mode == true) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    } else {
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+    }
   }
 }

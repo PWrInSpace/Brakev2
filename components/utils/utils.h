@@ -5,6 +5,6 @@
 
 #include <stdint.h>
 
-int64_t get_time_ms(void);
+uint64_t get_time_ms(void);
 
 #endif

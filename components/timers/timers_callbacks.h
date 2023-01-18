@@ -13,5 +13,6 @@ void TIMER_CB_buzzer_change(void *arg);
 void TIMER_CB_buzzer_high(void *arg);
 void TIMER_CB_buzzer_low(void *arg);
 void TIMER_CB_recov_trig(void *arg);
+void TIMER_CB_recov_close(void *arg);
 
 #endif

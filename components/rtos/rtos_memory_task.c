@@ -6,6 +6,7 @@
 
 #define TAG "MEM_TASK"
 #define FILE_NAME "/sdcard/data"
+
 extern sd_card_t sd_card;
 
 static bool create_path_to_file(char *file_path, size_t size) {
@@ -42,8 +43,9 @@ static bool can_save_data_to_flash(DATA_SAVE_OPTIONS option) {
 
 static size_t create_data_csv(data_to_memory_task_t *rec, char *data_string, size_t len) {
     return snprintf(data_string, len,
-        "Test;%d;%ld;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n",
-        rec->data.state, rec->data.up_time,
+        "%lu;%d;%lu;%.2f;%.2f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n",
+        (uint32_t)rec->data.flight_time, rec->data.state, (uint32_t)rec->data.up_time,
+        rec->data.sensors.filtered.height, rec->data.sensors.velocity,
         rec->data.sensors.acc.x, rec->data.sensors.acc.y, rec->data.sensors.acc.z,
         rec->data.sensors.gyro.x, rec->data.sensors.gyro.y, rec->data.sensors.gyro.z,
         rec->data.sensors.height,
@@ -51,9 +53,13 @@ static size_t create_data_csv(data_to_memory_task_t *rec, char *data_string, siz
         rec->data.sensors.filtered.acc.x, rec->data.sensors.filtered.acc.y,
         rec->data.sensors.filtered.acc.z,
         rec->data.sensors.filtered.gyro.x, rec->data.sensors.filtered.gyro.y,
-        rec->data.sensors.filtered.gyro.z, rec->data.sensors.filtered.height,
+        rec->data.sensors.filtered.gyro.z,
         rec->data.sensors.vBatt);
 }
+
+const char file_header[] = "FLIGHT TIME; STATE; UPTIME; F ALTITUDE; VELOCITY; ACC X; ACC Y; ACC Z;"
+                    "GYRO X; GYRO; Y; GYRO Z; ALTITUDE; PRESSURE; TEMPERATURE; F ACC X; F ACC Y;"
+                    "F ACC Z F GYRO X; F GYRO Y; F GYRO Z; VBATT\n";
 
 void memory_task(void *arg) {
     char data_string[512];
@@ -65,12 +71,17 @@ void memory_task(void *arg) {
     }
     ESP_LOGI(TAG, "Using file path %s", file_path);
 
+    SD_write(&sd_card, file_path, file_header, sizeof(file_header));
 
     while (1) {
         if (xQueueReceive(rtos.data_to_memory, (void*) &data, portMAX_DELAY) == pdTRUE) {
             if (can_save_data_to_sd(data.save_option) == true) {
                 create_data_csv(&data, data_string, sizeof(data_string));
                 SD_write(&sd_card, file_path, data_string, sizeof(data_string));
+
+                if (SETI_get_settings()->test_mode == true) {
+                    ESP_LOGI(TAG, ";%s", data_string);
+                }
             }
 
             if (can_save_data_to_flash(data.save_option) == true) {

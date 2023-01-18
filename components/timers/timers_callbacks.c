@@ -7,6 +7,9 @@
 #include "recovery_servo.h"
 #include "settings.h"
 #include "rtos_tasks.h"
+#include "esp_log.h"
+
+#define TAG "DUPA"
 
 void TIMER_CB_brake_open(void *arg) {
     esp_event_post_to(event_get_handle(), TASK_EVENTS, BRAKE_OPEN_EVENT,
