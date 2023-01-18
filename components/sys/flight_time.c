@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #include "flight_time.h"
 
 static int64_t gb_start_time = 0;

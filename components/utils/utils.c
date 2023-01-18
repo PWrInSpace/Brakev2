@@ -10,5 +10,5 @@ uint64_t get_time_ms(void) {
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
 
-    return (unsigned long) (esp_timer_get_time() / 1000ULL);
+    return (uint64_t) (esp_timer_get_time() / 1000ULL);
 }

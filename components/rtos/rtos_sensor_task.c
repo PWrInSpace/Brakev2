@@ -130,7 +130,7 @@ static void filtered_update() {
 
   brake_sensors.filtered.height = alphaBetaFilter(
       &alpha_beta_filters.height, brake_sensors.height, up_time);
- brake_sensors.velocity = alpha_beta_filters.height.vk;
+  brake_sensors.velocity = alpha_beta_filters.height.vk;
   ESP_LOGI(TAG, "Filtered height: %f", brake_sensors.filtered.height);
   brake_sensors.filtered.acc.x =
       alphaBetaFilter(&alpha_beta_filters.acc.x, brake_sensors.acc.x, up_time);
@@ -151,7 +151,6 @@ static void filtered_update() {
   ESP_LOGI(TAG, "Filtered gyro: x: %f\t y:%f\tz:%f",
            brake_sensors.filtered.gyro.x, brake_sensors.filtered.gyro.y,
            brake_sensors.filtered.gyro.z);
-
 }
 
 #define EXIT_COMMAND "exit\r"
@@ -171,13 +170,15 @@ static void TEST_read_uart_data(void) {
         if (check_if_exit_command(buffer) == true) {
             esp_restart();
         }
-        if (sscanf(buffer, "%f;%f;%f;%f;%f;%f;%f;%f", &brake_sensors.acc.x, &brake_sensors.acc.y, &brake_sensors.acc.z,
-                   &brake_sensors.gyro.x, &brake_sensors.gyro.y, &brake_sensors.gyro.z, &brake_sensors.pressure, &brake_sensors.temp) < 8) {
+        if (sscanf(buffer, "%f;%f;%f;%f;%f;%f;%f;%f", &brake_sensors.acc.x, &brake_sensors.acc.y,
+                    &brake_sensors.acc.z, &brake_sensors.gyro.x, &brake_sensors.gyro.y,
+                    &brake_sensors.gyro.z, &brake_sensors.pressure, &brake_sensors.temp) < 8) {
             ESP_LOGE(TAG, "READ ERRORR");
             return;
         }
 
-        brake_sensors.height = 44330 * (1 - pow((brake_sensors.pressure / REFERENCE_PRESSURE_HPA), 1.f / 5.255f));
+        brake_sensors.height = 44330 * (1 - pow((brake_sensors.pressure /
+                                    REFERENCE_PRESSURE_HPA), 1.f / 5.255f));
     }
 }
 

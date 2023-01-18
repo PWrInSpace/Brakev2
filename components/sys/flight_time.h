@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #ifndef FLIGHT_TIME_H
 #define FLIGHT_TIME_H
 
