@@ -4,7 +4,7 @@ from gui import MainWindow
 import logging
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
     app = QApplication(sys.argv)
     mw = MainWindow()
     mw.show()

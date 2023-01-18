@@ -1,4 +1,4 @@
-// Copyright 2022 PWrInSpace, Kuba
+// Copyright 2022 PWrInSpace
 
 #ifndef ROTS_TASK_H
 #define RTOS_TASK_H

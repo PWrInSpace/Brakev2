@@ -52,8 +52,8 @@ esp_console_cmd_t console_commands[] = {
     {"recov-close", "Set recovery close angle", NULL, CLI_set_recovery_close_angle, NULL},
     {"recov-trigg", "Set recovery safety trigger", NULL, CLI_set_safety_trigger_time, NULL},
     {"recov-open-time", "Set recovery open time", NULL, CLI_set_recovery_open_time, NULL},
-    {"alpha", "Set alpha", NULL, CLI_set_alpha, NULL},
-    {"beta", "Set beta", NULL, CLI_set_beta, NULL},
+    // {"alpha", "Set alpha", NULL, CLI_set_alpha, NULL},
+    // {"beta", "Set beta", NULL, CLI_set_beta, NULL},
     {"buzzer-active", "Buzzer active after startup", NULL, CLI_buzzer_active, NULL},
 };
 

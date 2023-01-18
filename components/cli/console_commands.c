@@ -294,8 +294,8 @@ int CLI_print_settings(int argc, char **argv) {
     ESP_LOGI(TAG, "Recovery close angle: %d", settings->recovery_close_angle);
     ESP_LOGI(TAG, "Recovery safety trigger time: %d", settings->recovery_safety_trigger);
     ESP_LOGI(TAG, "Recovery open time: %d", settings->recovery_open_time);
-    ESP_LOGI(TAG, "Alpha: %f", settings->alpha);
-    ESP_LOGI(TAG, "Beta: %f", settings->beta);
+    // ESP_LOGI(TAG, "Alpha: %f", settings->alpha);
+    // ESP_LOGI(TAG, "Beta: %f", settings->beta);
     ESP_LOGI(TAG, "Mode: %s", settings->test_mode == TEST_MODE_ON ? "Test" : "Normal");
     ESP_LOGI(TAG, "Buzzer active: %s", settings->buzzer_active == true ? "true" : "false");
     return 0;
