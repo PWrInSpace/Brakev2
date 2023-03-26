@@ -42,6 +42,12 @@
 #define NVS_RECOV_SAFETY_TRIG_TIME  "R_SAFE_TRIG"
 #define NVS_RECOV_OPEN_TIME         "R_OPEN_TIME"
 
+#define RTOS_FLASH_QUEUE_DATA_TO_STASH 20
+#define RTOS_FLASH_QUEUE_SIZE 45
+#define RTOS_FLASH_SAVE 10
+#define RTOS_SD_QUEUE_SIZE 30
+#define RTOS_SD_SAVE 10
+
 typedef enum {
   LAUNCHPAD,
   ASCENT,
@@ -80,8 +86,10 @@ typedef struct {
   TaskHandle_t sensor_task;
   TaskHandle_t main_task;
   TaskHandle_t memory_task;
+  TaskHandle_t flash_task;
   TaskHandle_t test_mode_task;
   QueueHandle_t data_to_memory;
+  QueueHandle_t data_to_flash;
 } rtos_t;
 
 typedef struct {
@@ -132,6 +140,7 @@ void memory_task(void *arg);
 void main_task(void *arg);
 void sensor_task(void *arg);
 void test_mode_task(void *arg);
-size_t create_data_csv(data_to_memory_task_t *rec, char *data_string, size_t len);
+void flash_task(void *arg);
+size_t create_data_csv(rocket_data_t *rec, char *data_string, size_t len);
 
 #endif
