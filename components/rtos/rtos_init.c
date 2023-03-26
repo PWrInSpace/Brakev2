@@ -6,6 +6,7 @@
 #include "esp_log.h"
 #include "rtos_tasks.h"
 #include "esp_system.h"
+#include "flash.h"
 
 #define TAG "INIT"
 #define WTAG "WATCHDOG"
@@ -55,6 +56,7 @@ esp_console_cmd_t console_commands[] = {
     // {"alpha", "Set alpha", NULL, CLI_set_alpha, NULL},
     // {"beta", "Set beta", NULL, CLI_set_beta, NULL},
     {"buzzer-active", "Buzzer active after startup", NULL, CLI_buzzer_active, NULL},
+    {"flash-read", "Read data saved on flash memory", NULL, CLI_flash_read, NULL},
 };
 
 state_config_t states_conf[] = {
@@ -66,7 +68,7 @@ state_config_t states_conf[] = {
 };
 
 bool rtos_init(void) {
-  rtos.data_to_memory = xQueueCreate(20, sizeof(data_to_memory_task_t));
+  rtos.data_to_memory = xQueueCreate(30, sizeof(data_to_memory_task_t));
 
   if (rtos.data_to_memory == NULL) {
     return false;
@@ -81,6 +83,17 @@ bool rtos_init(void) {
 
   if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
       rtos.memory_task == NULL) {
+      if (rtos.sensor_task != NULL) {
+        vTaskDelete(rtos.sensor_task);
+      }
+
+      if (rtos.memory_task != NULL) {
+        vTaskDelete(rtos.memory_task);
+      }
+
+      if (rtos.main_task != NULL) {
+        vTaskDelete(rtos.main_task);
+      }
     return false;
   }
 
@@ -193,7 +206,7 @@ static void err_handling(char *name) {
     BUZZER_set_level(0);
     vTaskDelay(500 / portTICK_PERIOD_MS);
     BUZZER_set_level(1);
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    vTaskDelay(500000 / portTICK_PERIOD_MS);
     esp_restart();
 }
 
@@ -211,7 +224,7 @@ static inline void ERR_CHECK_STATUS(uint32_t status, char *name) {
 
 void init_task(void *arg) {
     BUZZER_init(PCB_BUZZER);
-    BUZZER_set_level(1);
+    // BUZZER_set_level(1);
     ERR_CHECK_BOOL(IGNITER_init(PCB_IGNITER1), "INGITER");
 
     ERR_CHECK_BOOL(SPI_init(&sd_spi, HSPI_HOST, PCB_MOSI, PCB_MISO, PCB_SCK), "SPI");
@@ -221,10 +234,10 @@ void init_task(void *arg) {
               "State machine set state");
     ERR_CHECK_BOOL(SM_run() == SM_OK ? true : false, "State machine run");
 
+    ERR_CHECK_STATUS(FLASH_init(1), "FLASH");
     ERR_CHECK_STATUS(NVS_init(), "NVS");
     ERR_CHECK_BOOL(read_settings_from_flash(), "NVS read");
     ERR_CHECK_BOOL(SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT), "SD_init");
-
     ERR_CHECK_STATUS(voltageMeasureInit(&vMes, BATT_ADC_CHANNEL, BATT_ADC_CAL), "V measure");
     watchdog_init(100, 8000, TASK_PRIORITY_HIGH, &wh);
     ERR_CHECK_BOOL(event_loop_init(), "event loop");

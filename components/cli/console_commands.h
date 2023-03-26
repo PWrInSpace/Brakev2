@@ -24,5 +24,6 @@ int CLI_print_settings(int argc, char **argv);
 int CLI_set_brake_open_time(int argc, char **argv);
 int CLI_set_safety_trigger_time(int argc, char **argv);
 int CLI_set_recovery_open_time(int argc, char **argv);
+int CLI_flash_read(int argc, char **argv);
 
 #endif

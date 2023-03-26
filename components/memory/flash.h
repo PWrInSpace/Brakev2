@@ -67,4 +67,5 @@ FlashResult FLASH_write(const char* file_name, const char* data, size_t size);
 FlashResult FLASH_read_all_data(const char* file_name, char* data_container,
                                 size_t size);
 size_t FLASH_get_used_size(void);
+bool FLASH_is_memory_available(void);
 FlashResult FLASH_format(void);

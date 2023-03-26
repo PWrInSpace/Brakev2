@@ -132,5 +132,6 @@ void memory_task(void *arg);
 void main_task(void *arg);
 void sensor_task(void *arg);
 void test_mode_task(void *arg);
+size_t create_data_csv(data_to_memory_task_t *rec, char *data_string, size_t len);
 
 #endif

@@ -88,7 +88,7 @@ bool SD_remount(sd_card_t *sd_card) {
     return res;
 }
 
-bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t length) {
+bool SD_write(sd_card_t *sd_card, const char* path, const char* data) {
     esp_err_t res;
 
     if (sd_card->mounted == false) {
