@@ -124,6 +124,20 @@ size_t FLASH_get_used_size(void) {
   return fl.used_size;
 }
 
+bool FLASH_is_memory_available(void) {
+  esp_err_t err;
+
+  if (fl.initialized == false) {
+    return 0;
+  }
+
+  err = esp_spiffs_info(fl.conf.partition_label, &fl.total_size, &fl.used_size);
+  if (err != ESP_OK) {
+    return 0;
+  }
+  return fl.used_size < (fl.total_size  / 2) ? true : false;
+}
+
 FlashResult FLASH_format(void) {
   esp_err_t err;
 

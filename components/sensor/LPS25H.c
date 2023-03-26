@@ -2,8 +2,6 @@
 
 #include "LPS25H.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_WARN
-
 LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress) {
   lps->port = portNum;
   lps->addr = i2cAddress;
@@ -65,8 +63,8 @@ LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal) {
   pressureProcessed |= (int32_t)pressureRaw[1];
   pressureProcessed <<= 8;
   pressureProcessed |= (int32_t)pressureRaw[0];
-  ESP_LOGI(LPS_TAG, "Raw pressure value: %ld, pressure in bytes %d %d %d",
-           pressureProcessed, pressureRaw[2], pressureRaw[1], pressureRaw[0]);
+  // ESP_LOGI(LPS_TAG, "Raw pressure value: %ld, pressure in bytes %d %d %d",
+  //          pressureProcessed, pressureRaw[2], pressureRaw[1], pressureRaw[0]);
   *pressureVal = ((float)pressureProcessed / 4096.f);
   return res == LPS25H_OK ? LPS25H_OK : LPS25H_ReadError;
 }
@@ -84,8 +82,8 @@ LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal) {
   tempProcessed = (int16_t)tempRaw[1];
   tempProcessed <<= 8;
   tempProcessed |= (int16_t)tempRaw[0];
-  ESP_LOGI(LPS_TAG, "Raw temp value: %d, temp in bytes %d %d ", tempProcessed,
-           tempRaw[1], tempRaw[0]);
+  // ESP_LOGI(LPS_TAG, "Raw temp value: %d, temp in bytes %d %d ", tempProcessed,
+  //          tempRaw[1], tempRaw[0]);
   *tempVal = ((float)tempProcessed / 480.f + 42.5f);
   return res == LPS25H_OK ? LPS25H_OK : LPS25H_ReadError;
 }

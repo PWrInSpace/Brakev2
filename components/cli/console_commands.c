@@ -285,6 +285,31 @@ int CLI_set_recovery_open_time(int argc, char **argv) {
     return 0;
 }
 
+int CLI_flash_read(int argc, char **argv) {
+    esp_log_level_set("*", ESP_LOG_NONE);
+    FILE *file = NULL;
+    file = fopen("/spiffs/data.txt", "r");
+    if (file == NULL) {
+        esp_log_level_set("*", ESP_LOG_INFO);
+        return -1;
+    }
+
+    data_to_memory_task_t data;
+    rocket_data_t rocket_data;
+    char data_buffer[200];
+    while (fread(&rocket_data, sizeof(rocket_data), 1, file)) {
+        data.data = rocket_data;
+        create_data_csv(&data, data_buffer, sizeof(data_buffer));
+        printf("%s", data_buffer);
+    }
+    fclose(file);
+
+    esp_log_level_set("*", ESP_LOG_INFO);
+    ESP_LOGI(TAG, "Read end");
+
+    return 0;
+}
+
 int CLI_print_settings(int argc, char **argv) {
     settings_t* settings = SETI_get_settings();
     ESP_LOGI(TAG, "Brake open angle: %d", settings->brake_open_angle);

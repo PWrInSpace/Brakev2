@@ -14,9 +14,9 @@ ESP_EVENT_DEFINE_BASE(TASK_EVENTS);
 static data_to_memory_task_t create_data_to_memory_struct(void) {
   data_to_memory_task_t data_to_mem;
   data_to_mem.data = main_data;
-  if (main_data.state < 2) {
+  if (main_data.state < ASCENT) {
     data_to_mem.save_option = SAVE_TO_SD;
-  } else if (main_data.state < 5) {
+  } else if (main_data.state < GROUND) {
     data_to_mem.save_option = SAVE_TO_BOTH;
   }
 
@@ -103,7 +103,7 @@ static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
   main_data.sensors = *(sensors_t*)data;
   update_data();
 
-  if (main_data.state < 6) {
+  if (main_data.state < GROUND) {
     data_to_memory_task_t data_to_memory = create_data_to_memory_struct();
     if (xQueueSend(rtos.data_to_memory, (void *)&data_to_memory, 0) ==
         pdFALSE) {
