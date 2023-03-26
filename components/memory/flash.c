@@ -135,7 +135,7 @@ bool FLASH_is_memory_available(void) {
   if (err != ESP_OK) {
     return 0;
   }
-  return fl.used_size < (fl.total_size  / 2) ? true : false;
+  return fl.used_size < (fl.total_size * 4 / 10) ? true : false;
 }
 
 FlashResult FLASH_format(void) {

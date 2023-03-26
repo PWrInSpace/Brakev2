@@ -67,6 +67,7 @@ typedef struct {
   i2c_port_t port;
   uint8_t addr;
   bool fifoConfigured : 1;
+  float altitude_offset;
 } LPS25H;
 
 /*!
@@ -80,6 +81,8 @@ LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress);
 */
 LPS25HResult LPS25HRegisterRead(LPS25H *lps, uint8_t regAddr, uint8_t *data,
                                 size_t len);
+
+LPS25HResult LPS25HCalibrate(LPS25H *lps);
 
 /*!
   \brief Write to the sensor register
