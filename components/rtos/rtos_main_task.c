@@ -11,6 +11,18 @@ static esp_event_loop_handle_t event_handle;
 
 ESP_EVENT_DEFINE_BASE(TASK_EVENTS);
 
+static data_to_memory_task_t create_data_to_memory_struct(void) {
+  data_to_memory_task_t data_to_mem;
+  data_to_mem.data = main_data;
+  if (main_data.state < ASCENT) {
+    data_to_mem.save_option = SAVE_TO_SD;
+  } else if (main_data.state < GROUND) {
+    data_to_mem.save_option = SAVE_TO_BOTH;
+  }
+
+  return data_to_mem;
+}
+
 static void update_data(void) {
   main_data.state = SM_get_current_state();
   main_data.up_time = get_time_ms();
@@ -19,10 +31,6 @@ static void update_data(void) {
 
 /********************** EVENTS ************************/
 
-static void wakeup_flash_task(void) {
-    xTaskNotifyGive(rtos.flash_task);
-}
-
 static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
                                    void *data) {
     ESP_LOGD(TAG, "HIGH ACCELERATION");
@@ -30,7 +38,7 @@ static void sensors_high_acc_event(void *h_arg, esp_event_base_t, int32_t id,
         ESP_LOGE(TAG, "UNABLE TO CHANGE STATE TO ASCENT");
         return;
     }
-    wakeup_flash_task();
+
     FLIGHT_TIME_start(get_time_ms());
     BUZZER_set_level(1);
     TIMER_start(BRAKE_TIMER, SETI_get_settings()->brake_open_time,
@@ -89,19 +97,6 @@ static void touchdown_event(void *h_arg, esp_event_base_t, int32_t id, void *dat
     TIMER_start(BUZZER_TIMER, 1000, TIMER_PERIODIC, TIMER_CB_buzzer_change, NULL);
 }
 
-static void flash_keep_previous_data_on_queue(rocket_data_t *main_data) {
-  if (uxQueueMessagesWaiting(rtos.data_to_flash) > RTOS_FLASH_QUEUE_DATA_TO_STASH) {
-      rocket_data_t data;
-      if (xQueueReceive(rtos.data_to_flash, (void*)&data, 0) != pdTRUE) {
-        ESP_LOGE(TAG, "Unable to send to back");
-      }
-    }
-
-    if (xQueueSend(rtos.data_to_flash, (void *)main_data, 0) == pdFALSE) {
-        ESP_LOGE(TAG, "UNABLE TO SEND DATA TO FLASH TASK ON LAUNCHPAD");
-    }
-}
-
 static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
                                    void *data) {
   // ESP_LOGI(TAG, "NEW DATA EVENT");
@@ -109,17 +104,11 @@ static void sensors_new_data_event(void *h_arg, esp_event_base_t, int32_t id,
   update_data();
 
   if (main_data.state < GROUND) {
-    if (xQueueSend(rtos.data_to_memory, (void *)&main_data, 0) == pdFALSE) {
+    data_to_memory_task_t data_to_memory = create_data_to_memory_struct();
+    if (xQueueSend(rtos.data_to_memory, (void *)&data_to_memory, 0) ==
+        pdFALSE) {
       ESP_LOGE(TAG, "UNABLE TO SEND DATA TO MEMORY TASK");
     }
-  }
-
-  if (main_data.state > LAUNCHPAD && main_data.state < GROUND) {
-    if (xQueueSend(rtos.data_to_flash, (void *)&main_data, 0) == pdFALSE) {
-      ESP_LOGE(TAG, "UNABLE TO SEND DATA TO FLASH TASK");
-    }
-  } else if (main_data.state == LAUNCHPAD) {
-    flash_keep_previous_data_on_queue(&main_data);
   }
   // set brejk
 }

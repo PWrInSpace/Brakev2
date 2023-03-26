@@ -68,8 +68,7 @@ state_config_t states_conf[] = {
 };
 
 bool rtos_init(void) {
-  rtos.data_to_memory = xQueueCreate(RTOS_SD_QUEUE_SIZE, sizeof(rocket_data_t));
-  rtos.data_to_flash = xQueueCreate(RTOS_FLASH_QUEUE_SIZE, sizeof(rocket_data_t));
+  rtos.data_to_memory = xQueueCreate(30, sizeof(data_to_memory_task_t));
 
   if (rtos.data_to_memory == NULL) {
     return false;
@@ -81,20 +80,14 @@ bool rtos_init(void) {
                           TASK_PRIORITY_HIGH, &rtos.main_task, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(memory_task, "memory_task", 8000, NULL,
                           TASK_PRIORITY_MID, &rtos.memory_task, APP_CPU_NUM);
-  xTaskCreatePinnedToCore(flash_task, "flash_task", 8000, NULL,
-                          TASK_PRIORITY_HIGH, &rtos.flash_task, APP_CPU_NUM);
 
   if (rtos.sensor_task == NULL || rtos.main_task == NULL ||
-      rtos.memory_task == NULL || rtos.flash_task == NULL) {
+      rtos.memory_task == NULL) {
       if (rtos.sensor_task != NULL) {
         vTaskDelete(rtos.sensor_task);
       }
 
       if (rtos.memory_task != NULL) {
-        vTaskDelete(rtos.memory_task);
-      }
-
-      if (rtos.flash_task != NULL) {
         vTaskDelete(rtos.memory_task);
       }
 
@@ -206,27 +199,6 @@ static bool read_settings_from_flash(void) {
     return res == NVS_OK ? true : false;
 }
 
-static void format_flash_on_boot_button(void) {
-    gpio_set_direction(0, GPIO_MODE_INPUT);
-    if (gpio_get_level(0) == 0) {
-      ESP_LOGI(TAG, "FLASH FORMATING ....");
-      for (int i = 0; i < 2; ++i) {
-        BUZZER_set_level(1);
-        vTaskDelay(pdMS_TO_TICKS(250));
-        BUZZER_set_level(0);
-        vTaskDelay(pdMS_TO_TICKS(250));
-      }
-      FLASH_format();
-
-      for (int i = 0; i < 4; ++i) {
-        BUZZER_set_level(1);
-        vTaskDelay(pdMS_TO_TICKS(200));
-        BUZZER_set_level(0);
-        vTaskDelay(pdMS_TO_TICKS(200));
-      }
-    }
-}
-
 /**************************** ERRORS ***************************/
 
 static void err_handling(char *name) {
@@ -263,7 +235,6 @@ void init_task(void *arg) {
     ERR_CHECK_BOOL(SM_run() == SM_OK ? true : false, "State machine run");
 
     ERR_CHECK_STATUS(FLASH_init(1), "FLASH");
-    format_flash_on_boot_button();
     ERR_CHECK_STATUS(NVS_init(), "NVS");
     ERR_CHECK_BOOL(read_settings_from_flash(), "NVS read");
     ERR_CHECK_BOOL(SD_init(&sd_card, sd_spi.spi_host, PCB_SD_CS, MOUNT_POINT), "SD_init");
@@ -286,7 +257,6 @@ void init_task(void *arg) {
                         "LSM6DSA3 gyro scale");
         ERR_CHECK_STATUS(LPS25HInit(&press_sensor, I2C_NUM_1, LPS25H_I2C_ADDR_SA0_H), "LPS25H");
         ERR_CHECK_STATUS(LPS25HStdConf(&press_sensor), "LPS25HB conf");
-        ERR_CHECK_STATUS(LPS25HCalibrate(&press_sensor), "LPS25HB calibration");
         ERR_CHECK_STATUS(console_init(), "CLI");
         ERR_CHECK_STATUS(console_register_commands(console_commands,
             sizeof(console_commands)/sizeof(console_commands[0])), "CLI register");
