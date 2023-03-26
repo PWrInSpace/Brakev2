@@ -6,7 +6,6 @@ LPS25HResult LPS25HInit(LPS25H *lps, i2c_port_t portNum, uint8_t i2cAddress) {
   lps->port = portNum;
   lps->addr = i2cAddress;
   lps->fifoConfigured = false;
-  lps->altitude_offset = 0;
   ESP_LOGI(LPS_TAG, "Sensor initiated");
   return LPS25H_OK;
 }
@@ -70,21 +69,6 @@ LPS25HResult LPS25HReadPressure(LPS25H *lps, float *pressureVal) {
   return res == LPS25H_OK ? LPS25H_OK : LPS25H_ReadError;
 }
 
-LPS25HResult LPS25HCalibrate(LPS25H *lps) {
-  float altitude = 0;
-  float temp = 0;
-  float pressure = 0;
-  for (int i = 0; i < 5; ++i) {
-    vTaskDelay(pdMS_TO_TICKS(100));
-    LPS25HGetHeightAndPressure(lps, &temp, &pressure);
-    altitude += temp;
-  }
-
-  lps->altitude_offset = altitude / 5.0;
-  ESP_LOGI("TAG", "ALTITUDE OFFSET %f", lps->altitude_offset);
-  return LPS25H_OK;
-}
-
 LPS25HResult LPS25HReadTemperature(LPS25H *lps, float *tempVal) {
   if (!lps->fifoConfigured) {
     ESP_LOGE(LPS_TAG, "Sensor fifo mode not configured!");
@@ -112,6 +96,5 @@ LPS25HResult LPS25HGetHeightAndPressure(LPS25H *lps, float *height,
     *height = 0;    return LPS25H_ReadError;
   }
   *height = 44330 * (1 - pow((*press / REFERENCE_PRESSURE_HPA), 1.f / 5.255f));
-  *height -= lps->altitude_offset;
   return LPS25H_OK;
 }

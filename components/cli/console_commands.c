@@ -8,7 +8,6 @@
 #include "brake_servo.h"
 #include "recovery_servo.h"
 #include "flash_nvs.h"
-#include "flash.h"
 #include "rtos_tasks.h"
 #include "nvs.h"
 
@@ -295,10 +294,12 @@ int CLI_flash_read(int argc, char **argv) {
         return -1;
     }
 
+    data_to_memory_task_t data;
     rocket_data_t rocket_data;
     char data_buffer[200];
     while (fread(&rocket_data, sizeof(rocket_data), 1, file)) {
-        create_data_csv(&rocket_data, data_buffer, sizeof(data_buffer));
+        data.data = rocket_data;
+        create_data_csv(&data, data_buffer, sizeof(data_buffer));
         printf("%s", data_buffer);
     }
     fclose(file);
@@ -306,11 +307,6 @@ int CLI_flash_read(int argc, char **argv) {
     esp_log_level_set("*", ESP_LOG_INFO);
     ESP_LOGI(TAG, "Read end");
 
-    return 0;
-}
-
-int CLI_flash_format(int argcc, char **argv) {
-    FLASH_format();
     return 0;
 }
 
