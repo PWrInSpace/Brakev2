@@ -54,7 +54,8 @@ void flash_task(void *arg) {
 
     // waiting for signal
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
+    flash_file = fopen("/spiffs/data.txt", "w");
+    close_flash_file(flash_file);
 
     while (1) {
         if (uxQueueMessagesWaiting(rtos.data_to_flash) > RTOS_FLASH_SAVE) {
